@@ -18,6 +18,7 @@
   </div>
   <div class="actions">
     <button class="btn ghost" id="btnNew" data-i18n="btn.new">New</button>
+    <button class="btn ghost" id="btnSample" data-i18n="btn.sample" data-i18n-title="btn.sampleTitle">Load sample</button>
     <button class="btn ghost" id="btnImport" data-i18n="btn.import">Import wikitext</button>
     <button class="btn ghost" id="btnSave" data-i18n="btn.save">Save project</button>
     <label class="btn ghost" for="fileProject" style="margin:0" data-i18n="btn.load">Load project</label>
@@ -137,6 +138,10 @@
           <div>
             <strong data-i18n="stage.emptyTitle">Load a base image to begin</strong><br>
             <span data-i18n="stage.emptyBody">Use the panel on the left.</span>
+            <div style="margin-top:14px">
+              <button class="btn primary" id="btnSampleEmpty" data-i18n="btn.sample">Load sample</button>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:#72777d" data-i18n="stage.sampleNote"></div>
           </div>
         </div>
         <img class="base" id="baseImg" alt="" hidden>
@@ -178,6 +183,7 @@
         <li data-i18n="help.2"></li>
         <li data-i18n="help.3"></li>
       </ul>
+      <p class="hintline" data-i18n="help.sample"></p>
       <p class="hintline" data-i18n="help.foot"></p>
     </section>
 

@@ -458,6 +458,8 @@ function validate() {
   if (!S.base.src) push('err', t('check.noImage'));
   else if (!imageName()) push('warn', t('check.noName', { p: P.image }));
   if (!S.base.w || !S.base.h) push('err', t('check.noUnits', { ow: P.ow, oh: P.oh }));
+  if (S.base.fileW && S.base.w && Math.abs((S.base.fileW / S.base.fileH) - (S.base.w / S.base.h)) > 0.02)
+    push('warn', t('check.aspect', { fw: S.base.fileW, fh: S.base.fileH, ow: S.base.w, oh: S.base.h }));
   if (!S.items.length) push('err', t('check.noItems'));
   if (S.items.length > MAX_ITEMS) push('err', t('check.tooMany', { n: S.items.length, max: MAX_ITEMS }));
 
@@ -468,8 +470,12 @@ function validate() {
     else if (it.x < 0 || it.x > S.base.w || it.y < 0 || it.y > S.base.h)
       push('warn', t('check.itemOutside', { n, x: Math.round(it.x), y: Math.round(it.y) }));
     if (!it.layerSrc) push('warn', t('check.itemNoLayer', { n }));
-    if (it.layerW && S.base.w && (it.layerW !== S.base.w || it.layerH !== S.base.h))
-      push('warn', t('check.layerSize', { n, lw: it.layerW, lh: it.layerH, w: S.base.w, h: S.base.h }));
+    // compare canvas *shapes*: a layer at 2× the base still aligns when stretched,
+    // but a different aspect ratio shifts it. Use the files' own sizes, not the
+    // declared coordinate grid, which may legitimately differ from either.
+    const bw = S.base.fileW || S.base.w, bh = S.base.fileH || S.base.h;
+    if (it.layerW && it.layerH && bw && bh && Math.abs((it.layerW / it.layerH) - (bw / bh)) > 0.01)
+      push('warn', t('check.layerSize', { n, lw: it.layerW, lh: it.layerH, w: bw, h: bh }));
     if (it.layerSrc && !String(it.layerName || '').trim())
       push('warn', t('check.layerLocal', { n }));
     if (S.g.captions === 'card' && it.text && (it.x == null || it.y == null))
@@ -544,8 +550,18 @@ function updateStatus() {
     : t('app.idle');
 }
 
-function setBase(src, name, w, h) {
-  S.base = { src, name: stripFilePrefix(name), w: Math.round(w), h: Math.round(h) };
+function setBase(src, name, w, h, opts) {
+  // keepUnits: an imported block declares its own coordinate grid (original-width/height);
+  // the file's intrinsic size must not overwrite it, or every marker shifts.
+  const keep = opts && opts.keepUnits;
+  S.base = {
+    src,
+    name: stripFilePrefix(name),
+    w: keep && S.base.w ? S.base.w : Math.round(w),
+    h: keep && S.base.h ? S.base.h : Math.round(h),
+    fileW: Math.round(w),
+    fileH: Math.round(h)
+  };
   const img = $('baseImg');
   img.src = src; img.hidden = false;
   $('stageEmpty').hidden = true;
@@ -733,29 +749,60 @@ function showImport() {
     </div>
   `);
   $('btnDoImport').addEventListener('click', async () => {
+    const txt = $('importArea').value;
+    closeModal();
     try {
-      parseWikitext($('importArea').value);
-      closeModal();
-      syncGlobalsToForm();
-      $('owInput').value = S.base.w || ''; $('ohInput').value = S.base.h || '';
-      renderAll();
-      if (S.base.name) {
-        try { await loadCommons(S.base.name); } catch (e) { toast(t('toast.baseFail', { msg: e.message })); }
-      }
-      // re-fetch layers
-      for (const it of S.items) {
-        if (it.layerName) {
-          try {
-            const f = await commonsFile(it.layerName);
-            it.layerSrc = f.src; it.layerW = f.w; it.layerH = f.h;
-          } catch (e) { /* leave unresolved */ }
-        }
-      }
-      applyLang();   // the imported block may have retargeted the wiki
-      if (!S.expert && S.items.length) setStep(3, { silent: true });
-      toast(t('import.ok', { n: S.items.length }));
+      const n = await applyBlock(txt);
+      toast(t('import.ok', { n }));
     } catch (e) { toast(e.message); }
   });
+}
+
+/* ------------------------------------------------------------- load a block */
+/* Shared by "Import wikitext" and "Load sample": parse, then resolve the base
+ * image and every layer from Commons so the preview and checks are honest. */
+async function applyBlock(text, opts) {
+  parseWikitext(text);
+  syncGlobalsToForm();
+  $('owInput').value = S.base.w || '';
+  $('ohInput').value = S.base.h || '';
+  applyLang();                       // the block may have retargeted the wiki
+
+  if (S.base.name) {
+    try {
+      const f = await commonsFile(S.base.name);
+      setBase(f.src, f.name, f.w, f.h, { keepUnits: true });
+    } catch (e) { toast(t('toast.baseFail', { msg: e.message })); }
+  }
+
+  const pending = S.items.filter((it) => it.layerName);
+  let done = 0;
+  for (const it of pending) {
+    try {
+      const f = await commonsFile(it.layerName);
+      it.layerSrc = f.src; it.layerW = f.w; it.layerH = f.h;
+    } catch (e) { /* leave unresolved — the checks report it */ }
+    done += 1;
+    if (opts && opts.progress && pending.length > 3) toast(t('toast.sampleProgress', { done, total: pending.length }));
+  }
+
+  applyLang();
+  if (!S.expert && S.items.length) setStep(3, { silent: true });
+  return S.items.length;
+}
+
+/* a real block from en.wikipedia "Voyager 1" — 16 regions, 16 Commons layers */
+const SAMPLE_FILE = 'demo/voyager-spacecraft.txt';
+
+async function loadSample() {
+  if ((S.items.length || S.base.src) && !confirm(t('toast.sampleConfirm'))) return;
+  try {
+    toast(t('toast.sampleLoading'));
+    const r = await fetch(SAMPLE_FILE, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const n = await applyBlock(await r.text(), { progress: true });
+    toast(t('toast.sampleLoaded', { n }));
+  } catch (e) { toast(t('toast.sampleFail', { msg: e.message })); }
 }
 
 function showAbout() {
@@ -1044,6 +1091,8 @@ function wire() {
   $('btnDownloadInline').addEventListener('click', () => downloadText(exportText()));
   $('btnExport').addEventListener('click', showExport);
   $('btnImport').addEventListener('click', showImport);
+  $('btnSample').addEventListener('click', loadSample);
+  $('btnSampleEmpty').addEventListener('click', loadSample);
   $('btnAbout').addEventListener('click', showAbout);
   $('btnSave').addEventListener('click', saveProject);
   $('btnNew').addEventListener('click', () => {
@@ -1107,7 +1156,7 @@ function boot() {
     .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
     .then((css) => { TEMPLATE_CSS = css; drawPreview(); window.__appReady = true; })
     .catch((e) => { console.warn('template CSS not loaded', e); window.__appReady = true; });
-  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML };
+  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML, applyBlock, loadSample };
 }
 
 document.addEventListener('DOMContentLoaded', boot);

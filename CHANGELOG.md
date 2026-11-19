@@ -3,6 +3,27 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.2.0 — 2026-11-19
+
+A blank canvas is a bad first impression, so the empty state now offers a finished example.
+
+- **Load sample** button (in the empty canvas and the top bar) opens the *Voyager 1* spacecraft
+  block: 16 regions, 16 layer files, all already on Commons. It goes through the same
+  parse → resolve → preview path as *Import wikitext*, so what you see is a real article's block,
+  not a fixture. `demo/voyager-spacecraft.txt` holds the wikitext (fetched 2026-11-19).
+- `applyBlock()` extracted from the import handler and shared with the sampler; layers resolve
+  sequentially with a progress toast (16 Commons lookups, ~1.5 s here).
+- **Fixed while wiring it:** importing a block overwrote its declared `original-width` /
+  `original-height` with the file's intrinsic size. For the Voyager block that is 600×737 declared
+  vs 726×892 actual — same aspect, so nothing looked broken, but every marker was computed against
+  the wrong grid (~17% off). The coordinate space declared by the block now wins;
+  `setBase(..., { keepUnits: true })` keeps the file size separately for geometry checks.
+- Layer-canvas check now compares *aspect ratios* against the base file, not absolute pixels
+  against the declared grid — a 2× layer aligns fine, a different ratio does not, and the old rule
+  flagged all 16 correct layers.
+- New check: the declared grid's ratio vs the file's own ratio, so a genuinely mismatched block is
+  reported instead of silently shifting.
+
 ## v1.1.0 — 2026-11-19
 
 Multilingual from the start: the tool now has an interface language and a target-wiki dialect,

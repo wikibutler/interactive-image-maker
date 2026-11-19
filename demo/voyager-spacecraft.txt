@@ -1,0 +1,102 @@
+<!-- {{Interactive image}} as used on en.wikipedia "Voyager 1" (fetched 2026-11-19).
+     Real-world sample for the workbench's Load sample button; not edited by the app. -->
+{{Interactive image
+|title   = Structure of the ''Voyager'' spacecraft
+|note    = Hover over a number or a list item to highlight that part. The spacecraft is shown without thermal blankets.
+|image   = Voyager egitura - oinarria.svg
+|width   = 55 |captions = card |resolution = 600
+|original-width  = 600
+|original-height = 737
+|color   = #d73333
+
+|1-name = High-gain antenna
+|1-text = A 3.7 m parabolic dish used to communicate with Earth through the [[NASA Deep Space Network]].
+|1-link = High-gain antenna
+|1-image = Voyager egitura - antena.svg
+|1-x = 215 |1-y = 338
+
+|2-name = Bus
+|2-text = The ten-sided main body. It houses the electronics, the onboard computers and the digital tape recorder.
+|2-link = Satellite bus
+|2-image = Voyager egitura - busa.svg
+|2-x = 369 |2-y = 288
+
+|3-name = Narrow-angle camera
+|3-text = Narrow-angle camera of the Imaging Science System (ISS), used for high-resolution images. Switched off in 1990.
+|3-image = Voyager egitura - iss-na.svg
+|3-x = 308 |3-y = 55
+
+|4-name = Wide-angle camera
+|4-text = Wide-angle camera of the Imaging Science System (ISS). Switched off in 1990.
+|4-image = Voyager egitura - iss-wa.svg
+|4-x = 283 |4-y = 31
+
+|5-name = Plasma spectrometer
+|5-text = Measured the properties of plasma ions and electrons between 5 eV and 1 keV. Switched off in 2007 after its performance degraded.
+|5-link = Plasma (physics)
+|5-image = Voyager egitura - pls.svg
+|5-x = 264 |5-y = 70
+
+|6-name = Cosmic Ray System
+|6-text = Studied the origin, acceleration and behaviour of interstellar [[cosmic ray]]s. Switched off in 2025 to save power.
+|6-link = Cosmic ray
+|6-image = Voyager egitura - crs.svg
+|6-x = 267 |6-y = 122
+
+|7-name = Ultraviolet spectrometer
+|7-text = A [[spectrometer]] that measured atmospheric properties and radiation. Switched off in 2016.
+|7-link = Ultraviolet–visible spectroscopy
+|7-image = Voyager egitura - uvs.svg
+|7-x = 374 |7-y = 17
+
+|8-name = Infrared spectrometer and radiometer
+|8-text = Studied the energy balance, atmospheric composition and temperature profiles of planets and moons. Switched off in 1998.
+|8-image = Voyager egitura - iris.svg
+|8-x = 365 |8-y = 40
+
+|9-name = Photopolarimeter
+|9-text = A telescope with a polarizer, used to study the surfaces and atmospheres of Jupiter and Saturn. No longer working.
+|9-link = Polarimeter
+|9-image = Voyager egitura - pps.svg
+|9-x = 324 |9-y = 88
+
+|10-name = Low-energy charged particle detector
+|10-text = Measured the energy fluxes of ions and electrons. Its data helped show that the probe had left the heliosphere. Switched off in 2026.
+|10-image = Voyager egitura - lecp.svg
+|10-x = 312 |10-y = 162
+
+|11-name = Hydrazine thrusters (16)
+|11-text = [[Hydrazine]] thrusters used to control the spacecraft's attitude and keep the antenna pointed at Earth.
+|11-link = Hydrazine
+|11-image = Voyager egitura - bultzagailuak.svg
+|11-x = 393 |11-y = 255
+
+|12-name = Optical calibration target and radiator
+|12-text = A plate used to calibrate the cameras and optical instruments, and a radiator that sheds the spacecraft's heat.
+|12-image = Voyager egitura - kalibrazioa.svg
+|12-x = 424 |12-y = 322
+
+|13-name = High-field magnetometers (2)
+|13-text = Magnetometers near the bus that measured the strong magnetic fields of the planets.
+|13-link = Magnetometer
+|13-image = Voyager egitura - hfm.svg
+|13-x = 307 |13-y = 445
+
+|14-name = Low-field magnetometers (2)
+|14-text = Mounted at the middle and the tip of the 13 m boom, away from the spacecraft's own magnetic field. They measure the weak interplanetary and interstellar fields. '''Still operating.'''
+|14-link = Magnetometer
+|14-image = Voyager egitura - magnetometro-besoa.svg
+|14-x = 147 |14-y = 608
+
+|15-name = Planetary radio astronomy and plasma wave antennas (2)
+|15-text = Two 10 m antennas shared by the Planetary Radio Astronomy experiment (switched off in 2008) and the Plasma Wave Subsystem ('''still operating''').
+|15-link = Radio astronomy
+|15-image = Voyager egitura - irrati-antenak.svg
+|15-x = 528 |15-y = 483
+
+|16-name = Radioisotope thermoelectric generators (3)
+|16-text = The spacecraft's power source: they turn the heat from the decay of [[plutonium-238]] into electricity. They produced about 470 W at launch.
+|16-link = Radioisotope thermoelectric generator
+|16-image = Voyager egitura - rtg.svg
+|16-x = 374 |16-y = 639
+}}

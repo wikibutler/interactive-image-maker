@@ -42,6 +42,11 @@ is highlighted, and *Next* refuses to advance without the prerequisite (no image
 **Show all panels** switches to the free-form three-panel layout for editing an existing
 project, and **‹ / ›** in step 3 walk region by region.
 
+- **Load sample** (empty state and top bar) — opens the *Voyager 1* spacecraft block
+  (16 regions, 16 layers, all already on Commons) so the first thing on screen is a finished,
+  working diagram rather than an empty canvas. The block lives in `demo/voyager-spacecraft.txt`
+  and is loaded through the same import path, so a second sample is just another file plus a
+  line in `loadSample()`.
 - **Commons / Upload / URL** — load a base image. A Commons file name is resolved through
   `action=query&prop=imageinfo` (thumb URL for display, natural size for units). Loading one
   advances you to step 2 by itself.
@@ -145,6 +150,7 @@ entry; `tunnel.log` and saved projects stay untracked.
 | `app.css` | workbench chrome (not the template's CSS) |
 | `template-styles.css` | verbatim copy of the template's TemplateStyles sheet — the preview's only styling |
 | `refresh-template-css.py` | re-pull that sheet, with revision timestamp in the header |
+| `demo/voyager-spacecraft.txt` | real `{{Interactive image}}` block from en.wp *Voyager 1*, used by **Load sample** |
 | `i18n.js` | interface strings per language + template dialects per wiki |
 | `check-i18n.js` | `node check-i18n.js` — fails if a language or dialect is incomplete |
 
