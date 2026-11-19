@@ -29,6 +29,15 @@ So the tool's three load-bearing decisions:
    preceding siblings of the image wrapper, cards with the same up/right/centre classes,
    the Commons credit box.
 
+## Layout
+
+The app owns the viewport: the page itself does not scroll. Left and right columns scroll on
+their own; the centre is a split of canvas and preview, each with its own scrollbar. The canvas
+is fitted in JS to the stage box (the frame is always exactly the rendered image, so percentage
+marker positions stay correct at any window size), and **hide preview** in the preview bar hands
+the whole column to the canvas. Below 1180 px the page goes back to a normal scrolling document,
+because side-by-side independent panes are hostile on a phone.
+
 ## Using it
 
 Two selectors sit at the right of the step bar: **Interface** (the language of this tool) and

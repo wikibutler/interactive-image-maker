@@ -217,6 +217,27 @@ function buildWidgetHTML() {
   return out.join('\n');
 }
 
+/* Fit the canvas to the stage box: the frame is sized to the image's own aspect
+ * ratio, so marker percentages still map onto the picture at any window size. */
+function fitCanvas() {
+  const stage = document.querySelector('.stage');
+  const frame = $('frame');
+  const img = $('baseImg');
+  if (!stage || !frame || !img) return;
+  if (!S.base.src || !img.naturalWidth || !img.naturalHeight) { frame.style.maxWidth = ''; return; }
+  const cs = getComputedStyle(stage);
+  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const availW = Math.max(120, stage.clientWidth - padX);
+  const availH = Math.max(120, stage.clientHeight - padY);
+  const ar = img.naturalWidth / img.naturalHeight;
+  // fit the box, but never shrink the canvas below a workable width — a very tall
+  // image then scrolls inside the stage rather than becoming a postage stamp
+  const fitted = Math.floor(availH * ar);
+  const w = Math.min(availW, Math.max(fitted, Math.min(240, availW)));
+  frame.style.maxWidth = w + 'px';
+}
+
 function fx(v) {
   let s = (Math.round(v * 100) / 100).toFixed(2);
   s = s.replace(/0+$/, '').replace(/\.$/, '');
@@ -246,6 +267,7 @@ function drawPreview() {
       const h = f.contentDocument.documentElement.scrollHeight;
       f.style.height = Math.max(120, h + 8) + 'px';
     } catch (e) { /* ignore */ }
+    fitCanvas();   // the stage's share can shift once the preview has a height
   };
 }
 
@@ -563,12 +585,15 @@ function setBase(src, name, w, h, opts) {
     fileH: Math.round(h)
   };
   const img = $('baseImg');
+  img.onload = () => { fitCanvas(); requestAnimationFrame(fitCanvas); };
   img.src = src; img.hidden = false;
+  fitCanvas();
   $('stageEmpty').hidden = true;
   $('owInput').value = S.base.w;
   $('ohInput').value = S.base.h;
   renderAll();
   if (!S.expert && S.step === 1) setStep(2, { silent: true });
+  setTimeout(fitCanvas, 250);   // fonts/preview settle a tick later
 }
 
 function renderAll() {
@@ -857,6 +882,7 @@ function applyStep() {
   });
   const mode = $('btnExpert');
   if (mode) mode.textContent = S.expert ? t('btn.guided') : t('btn.expert');
+  requestAnimationFrame(fitCanvas);   // the stage changes size between steps
   renderBanner(); renderForm(); renderInlineExport();
 }
 
@@ -928,6 +954,8 @@ function applyLang() {
 
   $('selLang').value = S.lang;
   $('selWiki').value = S.wiki;
+  const tout = $('btnPreviewToggle');
+  if (tout) tout.textContent = document.body.classList.contains('hidepreview') ? t('preview.show') : t('preview.hide');
   renderAll();
   applyStep();
 }
@@ -1087,6 +1115,12 @@ function wire() {
     if (S.step < 4) { setStep(S.step + 1); return; }
     copyText(exportText());
   });
+  $('btnPreviewToggle').addEventListener('click', () => {
+    const hidden = document.body.classList.toggle('hidepreview');
+    try { localStorage.setItem('wb.hidepreview', hidden ? '1' : '0'); } catch (_) { /* private mode */ }
+    $('btnPreviewToggle').textContent = hidden ? t('preview.show') : t('preview.hide');
+    requestAnimationFrame(fitCanvas);
+  });
   $('btnCopyInline').addEventListener('click', () => copyText(exportText()));
   $('btnDownloadInline').addEventListener('click', () => downloadText(exportText()));
   $('btnExport').addEventListener('click', showExport);
@@ -1147,8 +1181,17 @@ function boot() {
     S.wiki = S.wikiAuto ? (I18N.wikis[S.lang] ? S.lang : I18N.fallback) : savedWiki;
   } catch (_) { /* storage blocked — the defaults stand */ }
 
+  try { if (localStorage.getItem('wb.hidepreview') === '1') document.body.classList.add('hidepreview'); } catch (_) { /* private mode */ }
   wire();
   buildLangSelectors();
+  if (window.ResizeObserver) {
+    const stage = document.querySelector('.stage');
+    if (stage) new ResizeObserver(() => fitCanvas()).observe(stage);
+  }
+  window.addEventListener('resize', () => {
+    clearTimeout(fitCanvas._t);
+    fitCanvas._t = setTimeout(fitCanvas, 120);
+  });
   syncGlobalsToForm();
   applyLang();
 

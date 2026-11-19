@@ -3,6 +3,27 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.3.0 — 2026-11-19
+
+Layout rebuilt so the page never grows taller than the window.
+
+- The shell is `100vh` with `overflow:hidden`; `main` is a grid with one `minmax(0,1fr)` row.
+  Left and right columns scroll **independently** (`overflow-y:auto`, overscroll containment,
+  stable scrollbar gutter), so the bottom of the options and the bottom of the region list are
+  reachable without pushing the canvas out of view.
+- The centre column is a flex split — canvas `flex:3` (min 240 px), preview `flex:2` (min 180 px) —
+  so there is no blank area under the preview any more: whatever space the content does not use is
+  simply not allocated.
+- The canvas is fitted to the stage box in JS: the frame is set to exactly the rendered image's
+  width, so percentage markers stay glued to the picture at any window size, and a very tall image
+  scrolls inside the canvas instead of stretching the page. Fitting runs on load, on resize, on
+  step change and once the preview has settled.
+- **hide preview** (new pill in the preview bar) gives the canvas the whole column; the choice is
+  remembered.
+- Step 4 fills the centre column with the wikitext pane, which scrolls internally.
+- Below 1180 px everything reverts to ordinary document scrolling — independent panes are the
+  wrong model on a phone.
+
 ## v1.2.0 — 2026-11-19
 
 A blank canvas is a bad first impression, so the empty state now offers a finished example.

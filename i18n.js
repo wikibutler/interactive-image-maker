@@ -78,6 +78,7 @@ window.I18N = {
       'stage.emptyBody': 'Use the panel on the left — a Commons file name, an upload, or a URL.',
       'preview.title': 'Live preview', 'preview.hint': 'hover a marker or a legend row',
       'preview.desktop': 'desktop', 'preview.mobile': 'mobile 360', 'preview.viewport': 'viewport',
+      'preview.hide': 'hide preview', 'preview.show': 'show preview',
 
       'items.title': 'Regions', 'items.add': '+ Add region at centre',
       'items.empty': 'No items yet — click the image to place marker 1.',
@@ -222,6 +223,7 @@ window.I18N = {
       'stage.emptyBody': 'Erabili ezkerreko panela — Commons fitxategi-izen bat, karga bat edo URLa.',
       'preview.title': 'Aurrebista bizia', 'preview.hint': 'pasatu sagua marka edo legenda-errenkada baten gainetik',
       'preview.desktop': 'mahaigaina', 'preview.mobile': 'mugikorra 360', 'preview.viewport': 'ikuspegia',
+      'preview.hide': 'ezkutatu aurrebista', 'preview.show': 'erakutsi aurrebista',
 
       'items.title': 'Eremuak', 'items.add': '+ Gehitu eremua erdian',
       'items.empty': 'Oraindik ez dago elementurik — egin klik irudian 1. marka jartzeko.',

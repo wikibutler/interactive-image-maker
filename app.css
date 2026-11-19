@@ -8,7 +8,8 @@
 html,body{margin:0;height:100%}
 body{
   font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  color:var(--ink); background:var(--bg); display:flex; flex-direction:column; min-height:100vh;
+  color:var(--ink); background:var(--bg); display:flex; flex-direction:column;
+  height:100vh; overflow:hidden;   /* the app shell owns the viewport; panes scroll, not the page */
 }
 button,input,select,textarea{font:inherit;color:inherit}
 
@@ -38,16 +39,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* ---------- layout ---------- */
 main{
-  flex:1; display:grid; gap:12px; padding:12px;
+  flex:1 1 auto; display:grid; gap:12px; padding:12px;
   grid-template-columns:290px minmax(0,1fr) 340px;
-  align-items:start;
+  grid-template-rows:minmax(0,1fr);
+  align-items:stretch; min-height:0; overflow:hidden;
 }
 @media (max-width:1180px){
   main{grid-template-columns:1fr}
   .panel.right{order:3}
 }
-.panel{display:flex; flex-direction:column; gap:12px; position:sticky; top:66px}
-@media (max-width:1180px){ .panel{position:static} }
+/* each side column scrolls on its own, so the page never grows taller than the window */
+.panel{
+  display:flex; flex-direction:column; gap:12px;
+  min-height:0; height:100%; overflow-y:auto; overscroll-behavior:contain;
+  padding-right:4px; scrollbar-gutter:stable;
+}
+.panel .card{flex:0 0 auto}
 .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px}
 .card h2{
   font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted);
@@ -78,12 +85,16 @@ textarea{resize:vertical; min-height:64px; font-family:inherit}
 .kbd{font-family:var(--mono); font-size:11px; background:#f1f4f8; border:1px solid var(--line-soft); border-radius:4px; padding:0 3px}
 
 /* ---------- workbench ---------- */
-.workbench{display:flex; flex-direction:column; gap:12px; min-width:0}
+.workbench{display:flex; flex-direction:column; gap:12px; min-width:0; min-height:0; height:100%; overflow:hidden}
 .stage{
   background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px;
-  display:flex; justify-content:center; min-height:220px;
+  display:flex; justify-content:center; align-items:center;
+  flex:3 1 0; min-height:240px; overflow:auto;   /* a very tall image may scroll inside the canvas */
 }
+/* width is fitted in JS to the stage box; the frame always equals the rendered image,
+   so percentage marker positions stay correct at any window size */
 .frame{position:relative; width:100%; max-width:820px; user-select:none}
+.frame img.base{height:auto}
 .frame img.base{display:block; width:100%; height:auto; border:1px solid var(--line-soft); background:
   repeating-conic-gradient(#f2f4f7 0% 25%,#fff 0% 50%) 50%/16px 16px; border-radius:4px}
 /* author display: rules beat the UA [hidden] rule — the empty state must lose explicitly */
@@ -118,8 +129,13 @@ textarea{resize:vertical; min-height:64px; font-family:inherit}
 iframe#preview{
   width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; min-height:180px;
 }
+.previewwrap{flex:2 1 0; min-height:180px; overflow-y:auto; overscroll-behavior:contain}
 .previewwrap.box{background:#eef1f5; border-radius:10px; padding:14px; display:flex; justify-content:center}
 .previewwrap.box iframe#preview{max-width:100%}
+iframe#preview{min-height:100%}
+/* give the canvas the whole column when the preview is in the way */
+body.hidepreview .previewwrap{display:none}
+body.hidepreview .stage{flex:1 1 auto}
 
 /* ---------- items ---------- */
 .items{max-height:none}
@@ -221,7 +237,8 @@ main[data-step="3"] #cardHelp, main[data-step="3"] #cardExport{display:none}
 main[data-step="4"]{grid-template-columns:minmax(0,1fr)}
 main[data-step="4"] .panel.left, main[data-step="4"] .stage, main[data-step="4"] .previewbar,
 main[data-step="4"] .previewwrap, main[data-step="4"] #cardHelp, main[data-step="4"] #cardItems{display:none}
-main[data-step="4"] #cardExport{display:block}
+main[data-step="4"] #cardExport{display:flex; flex-direction:column; min-height:0; flex:1 1 auto}
+main[data-step="4"] #inlineExport{flex:1 1 auto; min-height:0; max-height:none; overflow:auto}
 main[data-step="4"] #cardChecks{display:block}
 main[data-step="x"] #cardExport{display:none}
 
@@ -252,4 +269,19 @@ main[data-step="x"] #cardExport{display:none}
 @media (max-width:720px){
   .langsel span{display:none}
   .langsel{margin-left:4px}
+}
+
+/* ---------- narrow / short windows: back to a normal scrolling document ---------- */
+@media (max-width:1180px){
+  body{height:auto; min-height:100vh; overflow:auto}
+  main{height:auto; overflow:visible; grid-template-rows:auto; align-items:start}
+  .panel{height:auto; overflow:visible; padding-right:0; scrollbar-gutter:auto}
+  .workbench{height:auto; overflow:visible}
+  .stage{flex:0 0 auto; overflow:visible}
+  .previewwrap{flex:0 0 auto; overflow:visible}
+  iframe#preview{min-height:180px}
+  main[data-step="4"] #cardExport{flex:0 0 auto}
+}
+@media (max-height:620px){
+  .stage{flex:1 1 45%}
 }
