@@ -285,3 +285,29 @@ main[data-step="x"] #cardExport{display:none}
 @media (max-height:620px){
   .stage{flex:1 1 45%}
 }
+
+/* ---------- canvas zoom, splitter, preview expand ---------- */
+.stage{position:relative}
+.zoombar{
+  position:absolute; top:8px; right:8px; display:flex; align-items:center; gap:2px;
+  background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:7px;
+  padding:2px; z-index:6; box-shadow:0 1px 3px rgba(0,0,0,.08);
+}
+.zoombar button{
+  border:0; background:none; min-width:24px; height:22px; padding:0 6px; cursor:pointer;
+  font-size:12px; border-radius:4px; color:var(--ink); line-height:1;
+}
+.zoombar button:hover{background:#eef2f7}
+.zoombar .lbl{
+  font-size:11px; color:var(--muted); min-width:34px; text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.splitter{
+  flex:0 0 12px; cursor:row-resize; display:flex; align-items:center; justify-content:center;
+  margin:-6px 0; touch-action:none;
+}
+.splitter span{display:block; width:46px; height:4px; border-radius:2px; background:var(--line)}
+.splitter:hover span, .splitter.dragging span{background:#a2a9b1}
+body.maxpreview .stage, body.maxpreview .splitter{display:none}
+body.maxpreview .previewwrap{flex:1 1 auto}
+body.maxpreview #btnPreviewMax{background:#e8f0fe; border-color:#a6c8f5; color:var(--accent-dark)}

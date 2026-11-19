@@ -51,6 +51,10 @@ is highlighted, and *Next* refuses to advance without the prerequisite (no image
 **Show all panels** switches to the free-form three-panel layout for editing an existing
 project, and **‹ / ›** in step 3 walk region by region.
 
+- **Zoom** — the canvas fits its box by default; `−` / `+` scale it (scrolling inside the canvas
+  when it grows), `fit` returns to fit. The drag bar between canvas and preview resizes the split,
+  and **expand** gives the preview the whole column.
+- **Deep links** — see *URL parameters* below; **Copy link** in the top bar produces one.
 - **Load sample** (empty state and top bar) — opens the *Voyager 1* spacecraft block
   (16 regions, 16 layers, all already on Commons) so the first thing on screen is a finished,
   working diagram rather than an empty canvas. The block lives in `demo/voyager-spacecraft.txt`
@@ -94,6 +98,25 @@ Refresh the copied stylesheet after the template's CSS changes:
 ```bash
 python3 refresh-template-css.py
 ```
+
+## URL parameters
+
+A link can open the workbench with a template already loaded — useful for sending "look at this
+one" to a colleague, or for a WikiProject page listing examples.
+
+| parameter | what it does |
+|---|---|
+| `page=Voyager 1` | fetch that page's wikitext, extract its first `{{Interactive image}}` block and load it (with all its layers from Commons) |
+| `wikitext=…` | load a block directly (URL-encoded) |
+| `sample=voyager-spacecraft` | open a bundled sample from `demo/` |
+| `file=Voyager egitura - oinarria.svg` | load just a base image from Commons |
+| `lang=eu` | interface language (`en`, `eu`) |
+| `wiki=eu` | wiki to read the page from, when it is not en.wp |
+| `target=eu` | export dialect, when it must differ from the block's own wiki |
+
+Example: `?page=Voyager 1` — or `?lang=eu&sample=voyager-spacecraft&target=eu` for a Basque
+interface with Basque parameter names. **Copy link** in the top bar builds the right URL for the
+current state (page-based when the block came from an article, otherwise the wikitext itself).
 
 ## Languages and targets
 

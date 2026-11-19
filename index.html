@@ -23,6 +23,7 @@
     <button class="btn ghost" id="btnSave" data-i18n="btn.save">Save project</button>
     <label class="btn ghost" for="fileProject" style="margin:0" data-i18n="btn.load">Load project</label>
     <input type="file" id="fileProject" accept=".json,application/json" hidden>
+    <button class="btn ghost" id="btnLink" data-i18n="btn.copyLink" data-i18n-title="btn.copyLinkTitle">Copy link</button>
     <button class="btn ghost" id="btnAbout" data-i18n="btn.about">About</button>
     <button class="btn primary" id="btnExport" data-i18n="btn.export">Export wikitext</button>
   </div>
@@ -133,6 +134,12 @@
     </div>
 
     <div class="stage">
+      <div class="zoombar" id="zoombar">
+        <button id="zoomOut" data-i18n-title="zoom.out">−</button>
+        <span class="lbl" id="zoomLabel">fit</span>
+        <button id="zoomIn" data-i18n-title="zoom.in">+</button>
+        <button id="zoomFit" data-i18n="zoom.fit">fit</button>
+      </div>
       <div class="frame" id="frame">
         <div class="empty" id="stageEmpty">
           <div>
@@ -151,6 +158,8 @@
       </div>
     </div>
 
+    <div class="splitter" id="splitter" data-i18n-title="split.title"><span></span></div>
+
     <div class="previewbar">
       <strong style="color:var(--ink)" data-i18n="preview.title">Live preview</strong>
       <span class="hint" id="previewMode" data-i18n="preview.hint">hover a marker or a legend row</span>
@@ -159,6 +168,7 @@
       <button class="pill on" data-pw="100%" data-i18n="preview.desktop">desktop</button>
       <button class="pill" data-pw="360px" data-i18n="preview.mobile">mobile 360</button>
       <button class="pill" id="btnPreviewToggle" data-i18n="preview.hide">hide</button>
+      <button class="pill" id="btnPreviewMax" data-i18n="preview.expand" data-i18n-title="preview.expandTitle">expand</button>
     </div>
     <div class="previewwrap" id="previewWrap">
       <iframe id="preview" title="Live preview" data-i18n-title="preview.iframeTitle"></iframe>

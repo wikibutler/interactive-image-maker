@@ -1,5 +1,5 @@
-<!-- {{Interactive image}} as used on en.wikipedia "Voyager 1" (fetched 2026-11-19).
-     Real-world sample for the workbench's Load sample button; not edited by the app. -->
+<!-- Template:Interactive image as used on en.wikipedia "Voyager 1" (fetched 2026-11-19).
+     Real-world sample for the workbench Load sample button; not edited by the app. -->
 {{Interactive image
 |title   = Structure of the ''Voyager'' spacecraft
 |note    = Hover over a number or a list item to highlight that part. The spacecraft is shown without thermal blankets.

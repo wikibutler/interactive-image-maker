@@ -3,6 +3,25 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.4.0 — 2026-11-19
+
+Two requests from review: make the canvas inspectable, and let a URL carry the template.
+
+- **Canvas zoom.** `−` / `+` / `fit` in the canvas corner scale the fitted view; above fit the
+  stage scrolls (markers keep their exact percentages — verified 35.83 % / 45.86 % unchanged at
+  156 % zoom), so the whole diagram is reachable without touching the page.
+- **Draggable split** between canvas and preview (persisted), and **expand** hands the whole
+  column to the preview — the answer to "the preview extends too far and I can't see all of it":
+  expand + the preview pane's own scrollbar shows the entire widget.
+- **Deep links**: `?page=`, `?wikitext=`, `?sample=`, `?file=`, `?lang=`, `?wiki=`, `?target=`.
+  `?page=Voyager 1` fetches the article's wikitext, extracts the block and resolves every layer.
+  **Copy link** in the top bar builds the URL for the current state (page-based when known,
+  otherwise the wikitext).
+- `extractBlock()` — brace-counting extraction of the first invocation from a whole page, shared by
+  the page loader and the paste importer. It strips HTML comments first: the demo file's own
+  header contained `{{Interactive image}}` inside a comment and won the match, which silently
+  produced a zero-parameter block (caught by the sample test, fixed).
+
 ## v1.3.0 — 2026-11-19
 
 Layout rebuilt so the page never grows taller than the window.

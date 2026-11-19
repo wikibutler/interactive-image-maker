@@ -25,7 +25,9 @@ const S = {
    * writing for en.wp, and a wiki may have a template dialect but no UI translation */
   lang: 'en',
   wiki: 'en',
-  wikiAuto: true   // until the target is chosen explicitly, it follows the interface language
+  wikiAuto: true,   // until the target is chosen explicitly, it follows the interface language
+  zoom: 1,          // 1 = fit; >1 scrolls the canvas
+  sourcePage: null  // { page, wiki } when the block came from a wiki page
 };
 
 let TEMPLATE_CSS = '';
@@ -233,9 +235,11 @@ function fitCanvas() {
   const ar = img.naturalWidth / img.naturalHeight;
   // fit the box, but never shrink the canvas below a workable width — a very tall
   // image then scrolls inside the stage rather than becoming a postage stamp
-  const fitted = Math.floor(availH * ar);
-  const w = Math.min(availW, Math.max(fitted, Math.min(240, availW)));
+  const fitted = Math.min(availW, Math.max(Math.floor(availH * ar), Math.min(240, availW)));
+  const w = Math.min(6000, Math.round(fitted * (S.zoom || 1)));
   frame.style.maxWidth = w + 'px';
+  const lbl = $('zoomLabel');
+  if (lbl) lbl.textContent = Math.abs((S.zoom || 1) - 1) < 0.02 ? t('zoom.fit') : Math.round((S.zoom || 1) * 100) + '%';
 }
 
 function fx(v) {
@@ -671,7 +675,25 @@ function dialectTables() {
   return { param, suffix, layout, captions };
 }
 
+/* Find the first template invocation in a larger text (a whole page, say) by
+ * counting braces — a regex cannot do this reliably when the block nests templates. */
+function extractBlock(rawText) {
+  const text = String(rawText).replace(/<!--[\s\S]*?-->/g, '');   // ignore commented-out templates
+  const names = Object.values(I18N.wikis).map((w) => w.template).filter(Boolean);
+  const re = new RegExp('\\{\\{\\s*(?:' + names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b', 'i');
+  const m = re.exec(text);
+  if (!m) return null;
+  let depth = 0;
+  for (let i = m.index; i < text.length - 1; i += 1) {
+    if (text[i] === '{' && text[i + 1] === '{') { depth += 1; i += 1; continue; }
+    if (text[i] === '}' && text[i + 1] === '}') { depth -= 1; i += 1; if (depth === 0) return text.slice(m.index, i + 1); }
+  }
+  return null;
+}
+
 function parseWikitext(txt) {
+  const extracted = extractBlock(txt);
+  if (extracted) txt = extracted;
   const names = Object.values(I18N.wikis).map((w) => w.template).filter(Boolean);
   const NAME = '(?:' + names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')';
   const m = txt.match(new RegExp('\\{\\{\\s*(' + NAME + ')\\b([\\s\\S]*?)\\}\\}\\s*$', 'i'))
@@ -787,6 +809,7 @@ function showImport() {
 /* Shared by "Import wikitext" and "Load sample": parse, then resolve the base
  * image and every layer from Commons so the preview and checks are honest. */
 async function applyBlock(text, opts) {
+  S.sourcePage = null;
   parseWikitext(text);
   syncGlobalsToForm();
   $('owInput').value = S.base.w || '';
@@ -819,11 +842,12 @@ async function applyBlock(text, opts) {
 /* a real block from en.wikipedia "Voyager 1" — 16 regions, 16 Commons layers */
 const SAMPLE_FILE = 'demo/voyager-spacecraft.txt';
 
-async function loadSample() {
+async function loadSample(file) {
+  const path = !file ? SAMPLE_FILE : (file.indexOf('/') >= 0 ? file : 'demo/' + file + '.txt');
   if ((S.items.length || S.base.src) && !confirm(t('toast.sampleConfirm'))) return;
   try {
     toast(t('toast.sampleLoading'));
-    const r = await fetch(SAMPLE_FILE, { cache: 'no-store' });
+    const r = await fetch(path, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const n = await applyBlock(await r.text(), { progress: true });
     toast(t('toast.sampleLoaded', { n }));
@@ -908,8 +932,8 @@ function renderInlineExport() {
   pre.textContent = (S.base.src && S.items.length) ? exportText() : t('export.empty');
 }
 
-async function copyText(body) {
-  try { await navigator.clipboard.writeText(body); toast(t('toast.copied')); }
+async function copyText(body, msgKey) {
+  try { await navigator.clipboard.writeText(body); toast(t(msgKey || 'toast.copied')); }
   catch (e) { toast(t('toast.clipboard')); }
 }
 
@@ -919,6 +943,79 @@ function downloadText(t, name) {
   a.download = name || 'interactive-image.txt';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+
+/* --------------------------------------------------- load a template from a wiki */
+async function loadFromPage(page, wiki) {
+  const code = I18N.wikis[wiki] ? wiki : S.wiki;
+  toast(t('toast.pageLoad', { page }));
+  try {
+    const api = `https://${code}.wikipedia.org/w/api.php?` + new URLSearchParams({
+      action: 'parse', page, prop: 'wikitext', format: 'json', formatversion: '2',
+      redirects: '1', origin: '*'
+    });
+    const r = await fetch(api);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if (j.error) throw new Error(j.error.info || j.error.code);
+    const block = extractBlock(j.parse.wikitext);
+    if (!block) { toast(t('toast.noBlock', { page })); return; }
+    S.wiki = code;
+    S.wikiAuto = false;
+    const n = await applyBlock(block);
+    S.sourcePage = { page: j.parse.title, wiki: code };
+    toast(t('toast.pageLoaded', { page: j.parse.title }));
+    return n;
+  } catch (e) {
+    toast(t('toast.pageFail', { page, msg: e.message }));
+  }
+}
+
+/* A URL that reopens exactly this state: the page it came from when we know it,
+ * otherwise the wikitext itself. */
+function deepLink() {
+  const u = new URL(location.href);
+  u.search = '';
+  u.hash = '';
+  if (S.sourcePage) {
+    u.searchParams.set('page', S.sourcePage.page);
+    if (S.sourcePage.wiki && S.sourcePage.wiki !== 'en') u.searchParams.set('wiki', S.sourcePage.wiki);
+  } else if (S.base.src && S.items.length) {
+    u.searchParams.set('wikitext', exportText());
+    if (S.wiki !== 'en') u.searchParams.set('wiki', S.wiki);
+  }
+  if (S.lang !== 'en') u.searchParams.set('lang', S.lang);
+  return u.toString();
+}
+
+/* ?page=  ?wikitext=  ?sample=  ?file=  ?lang=  ?wiki= */
+async function handleUrlParams() {
+  const q = new URLSearchParams(location.search);
+  const lang = q.get('lang');
+  const wiki = q.get('wiki');
+  let touched = false;
+  if (lang && I18N.ui[lang]) { S.lang = lang; touched = true; }
+  if (wiki && I18N.wikis[wiki]) { S.wiki = wiki; S.wikiAuto = false; touched = true; }
+  if (touched) applyLang();
+
+  const wt = q.get('wikitext');
+  const page = q.get('page');
+  const sample = q.get('sample');
+  const file = q.get('file');
+  try {
+    if (wt) await applyBlock(wt);
+    else if (page) await loadFromPage(page, wiki || S.wiki);
+    else if (sample) await loadSample(sample);
+    else if (file) await loadCommons(file);
+  } catch (e) { toast(e.message); }
+
+  // ?target= pins the export dialect after loading (a block normally sets it itself)
+  const target = q.get('target');
+  if (target && I18N.wikis[target]) {
+    S.wiki = target;
+    S.wikiAuto = false;
+    applyLang();
+  }
 }
 
 /* ------------------------------------------------------- interface language */
@@ -956,6 +1053,8 @@ function applyLang() {
   $('selWiki').value = S.wiki;
   const tout = $('btnPreviewToggle');
   if (tout) tout.textContent = document.body.classList.contains('hidepreview') ? t('preview.show') : t('preview.hide');
+  const mx = $('btnPreviewMax');
+  if (mx) mx.textContent = document.body.classList.contains('maxpreview') ? t('preview.collapse') : t('preview.expand');
   renderAll();
   applyStep();
 }
@@ -1115,6 +1214,40 @@ function wire() {
     if (S.step < 4) { setStep(S.step + 1); return; }
     copyText(exportText());
   });
+  const setZoom = (z) => { S.zoom = clamp(z, 0.4, 4); fitCanvas(); };
+  $('zoomIn').addEventListener('click', () => setZoom((S.zoom || 1) * 1.25));
+  $('zoomOut').addEventListener('click', () => setZoom((S.zoom || 1) / 1.25));
+  $('zoomFit').addEventListener('click', () => setZoom(1));
+
+  // drag the bar between canvas and preview
+  const split = $('splitter');
+  let splitState = null;
+  split.addEventListener('pointerdown', (e) => {
+    const stage = document.querySelector('.stage');
+    splitState = { y: e.clientY, h: stage.getBoundingClientRect().height };
+    split.classList.add('dragging');
+    try { split.setPointerCapture(e.pointerId); } catch (_) { /* synthetic pointer */ }
+    e.preventDefault();
+  });
+  split.addEventListener('pointermove', (e) => {
+    if (!splitState) return;
+    const stage = document.querySelector('.stage');
+    const wrap = document.querySelector('.workbench');
+    const max = wrap.clientHeight - 220;
+    const h = clamp(splitState.h + (e.clientY - splitState.y), 240, Math.max(260, max));
+    stage.style.flex = `0 0 ${Math.round(h)}px`;
+    $('previewWrap').style.flex = '1 1 auto';
+    try { localStorage.setItem('wb.split', String(Math.round(h))); } catch (_) { /* private mode */ }
+    fitCanvas();
+  });
+  split.addEventListener('pointerup', () => { splitState = null; split.classList.remove('dragging'); fitCanvas(); });
+
+  $('btnPreviewMax').addEventListener('click', () => {
+    const on = document.body.classList.toggle('maxpreview');
+    $('btnPreviewMax').textContent = on ? t('preview.collapse') : t('preview.expand');
+    requestAnimationFrame(fitCanvas);
+  });
+
   $('btnPreviewToggle').addEventListener('click', () => {
     const hidden = document.body.classList.toggle('hidepreview');
     try { localStorage.setItem('wb.hidepreview', hidden ? '1' : '0'); } catch (_) { /* private mode */ }
@@ -1129,6 +1262,7 @@ function wire() {
   $('btnSampleEmpty').addEventListener('click', loadSample);
   $('btnAbout').addEventListener('click', showAbout);
   $('btnSave').addEventListener('click', saveProject);
+  $('btnLink').addEventListener('click', () => copyText(deepLink(), 'toast.linkCopied'));
   $('btnNew').addEventListener('click', () => {
     if (!confirm(t('toast.newConfirm'))) return;
     S.base = { src: '', name: '', w: 0, h: 0 };
@@ -1181,7 +1315,11 @@ function boot() {
     S.wiki = S.wikiAuto ? (I18N.wikis[S.lang] ? S.lang : I18N.fallback) : savedWiki;
   } catch (_) { /* storage blocked — the defaults stand */ }
 
-  try { if (localStorage.getItem('wb.hidepreview') === '1') document.body.classList.add('hidepreview'); } catch (_) { /* private mode */ }
+  try {
+    if (localStorage.getItem('wb.hidepreview') === '1') document.body.classList.add('hidepreview');
+    const sp = parseInt(localStorage.getItem('wb.split'), 10);
+    if (sp > 200) document.querySelector('.stage').style.flex = `0 0 ${sp}px`;
+  } catch (_) { /* private mode */ }
   wire();
   buildLangSelectors();
   if (window.ResizeObserver) {
@@ -1195,11 +1333,13 @@ function boot() {
   syncGlobalsToForm();
   applyLang();
 
+  handleUrlParams().catch((e) => toast(e.message));
+
   fetch('template-styles.css')
     .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
     .then((css) => { TEMPLATE_CSS = css; drawPreview(); window.__appReady = true; })
     .catch((e) => { console.warn('template CSS not loaded', e); window.__appReady = true; });
-  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML, applyBlock, loadSample };
+  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML, applyBlock, loadSample, loadFromPage, deepLink, handleUrlParams, fitCanvas };
 }
 
 document.addEventListener('DOMContentLoaded', boot);
