@@ -106,7 +106,7 @@ one" to a colleague, or for a WikiProject page listing examples.
 
 | parameter | what it does |
 |---|---|
-| `page=Voyager 1` | fetch that page's wikitext, extract its first `{{Interactive image}}` block and load it (with all its layers from Commons) |
+| `page=en:Voyager 1` | fetch that page's wikitext, extract its first `{{Interactive image}}` block and load it (with all its layers from Commons). Scope it with a wiki prefix — `en:`, `eu:`, or the `enwp:`/`euwp:` aliases — or paste the article URL instead |
 | `wikitext=…` | load a block directly (URL-encoded) |
 | `sample=voyager-spacecraft` | open a bundled sample from `demo/` |
 | `file=Voyager egitura - oinarria.svg` | load just a base image from Commons |
@@ -114,8 +114,14 @@ one" to a colleague, or for a WikiProject page listing examples.
 | `wiki=eu` | wiki to read the page from, when it is not en.wp |
 | `target=eu` | export dialect, when it must differ from the block's own wiki |
 
-Example: `?page=Voyager 1` — or `?lang=eu&sample=voyager-spacecraft&target=eu` for a Basque
-interface with Basque parameter names. **Copy link** in the top bar builds the right URL for the
+A wiki prefix is only honoured when the prefix is a wiki the tool knows (`en`, `eu`), so a bare
+title that legitimately contains a colon — `Star Trek: Voyager`, `Category:Foo`, `File:X.svg` —
+is treated as a title, not as a wiki code. Without a prefix the page is read from the current
+target wiki (en.wp by default); a full `https://<lang>.wikipedia.org/wiki/…` URL carries its own.
+
+Examples: `?page=en:Voyager 1`, `?page=eu:Zaldi`,
+`?lang=eu&sample=voyager-spacecraft&target=eu`. **Copy link** always emits the scoped form, so a
+shared URL says which wiki it means. **Copy link** in the top bar builds the right URL for the
 current state (page-based when the block came from an article, otherwise the wikitext itself).
 
 ## Languages and targets

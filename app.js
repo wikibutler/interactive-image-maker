@@ -946,8 +946,32 @@ function downloadText(t, name) {
 }
 
 /* --------------------------------------------------- load a template from a wiki */
+/* "Voyager 1", "en:Voyager 1", "enwp:Voyager 1", "eu:Zaldi", or a full article URL.
+ * A bare title with a colon stays a title unless the prefix is a wiki we know, so
+ * "Star Trek: Voyager" and "Category:Foo" are not mistaken for wiki codes. */
+const WIKI_ALIASES = { enwp: 'en', enwiki: 'en', enwikipedia: 'en', euwp: 'eu', euwiki: 'eu' };
+
+function resolvePageRef(value, fallbackWiki) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  // a pasted article URL (any wikipedia language subdomain)
+  let m = raw.match(/^https?:\/\/([a-z][a-z-]{1,12})(?:\.m)?\.wikipedia\.org\/wiki\/([^?#]+)/i);
+  if (m) {
+    return { wiki: m[1].toLowerCase(), page: decodeURIComponent(m[2]).replace(/_/g, ' ') };
+  }
+  // a scoped title, but only when the prefix is a wiki we know
+  m = raw.match(/^([a-z][a-z-]{1,12})\s*:\s*(.+)$/i);
+  if (m) {
+    const code = m[1].toLowerCase();
+    const alias = WIKI_ALIASES[code] || (I18N.wikis[code] ? code : null);
+    if (alias) return { wiki: alias, page: m[2].trim() };
+  }
+  return { wiki: I18N.wikis[fallbackWiki] ? fallbackWiki : 'en', page: raw };
+}
+
 async function loadFromPage(page, wiki) {
-  const code = I18N.wikis[wiki] ? wiki : S.wiki;
+  // fetch from whatever wiki was named, even if we have no dialect for it yet
+  const code = /^[a-z][a-z-]{1,12}$/.test(String(wiki || '')) ? String(wiki) : S.wiki;
   toast(t('toast.pageLoad', { page }));
   try {
     const api = `https://${code}.wikipedia.org/w/api.php?` + new URLSearchParams({
@@ -960,11 +984,10 @@ async function loadFromPage(page, wiki) {
     if (j.error) throw new Error(j.error.info || j.error.code);
     const block = extractBlock(j.parse.wikitext);
     if (!block) { toast(t('toast.noBlock', { page })); return; }
-    S.wiki = code;
-    S.wikiAuto = false;
+    if (I18N.wikis[code]) { S.wiki = code; S.wikiAuto = false; }
     const n = await applyBlock(block);
     S.sourcePage = { page: j.parse.title, wiki: code };
-    toast(t('toast.pageLoaded', { page: j.parse.title }));
+    toast(t('toast.pageLoaded', { page: j.parse.title, wiki: code + '.wikipedia.org' }));
     return n;
   } catch (e) {
     toast(t('toast.pageFail', { page, msg: e.message }));
@@ -978,8 +1001,9 @@ function deepLink() {
   u.search = '';
   u.hash = '';
   if (S.sourcePage) {
-    u.searchParams.set('page', S.sourcePage.page);
-    if (S.sourcePage.wiki && S.sourcePage.wiki !== 'en') u.searchParams.set('wiki', S.sourcePage.wiki);
+    const sp = S.sourcePage;
+    u.searchParams.set('page', sp.wiki + ':' + sp.page);   // always scoped, never guessed
+    if (I18N.wikis[S.wiki] && S.wiki !== sp.wiki) u.searchParams.set('target', S.wiki);
   } else if (S.base.src && S.items.length) {
     u.searchParams.set('wikitext', exportText());
     if (S.wiki !== 'en') u.searchParams.set('wiki', S.wiki);
@@ -1004,7 +1028,10 @@ async function handleUrlParams() {
   const file = q.get('file');
   try {
     if (wt) await applyBlock(wt);
-    else if (page) await loadFromPage(page, wiki || S.wiki);
+    else if (page) {
+      const ref = resolvePageRef(page, wiki || S.wiki);
+      if (ref) await loadFromPage(ref.page, ref.wiki);
+    }
     else if (sample) await loadSample(sample);
     else if (file) await loadCommons(file);
   } catch (e) { toast(e.message); }
@@ -1081,6 +1108,14 @@ function wire() {
     finally { $('btnFetchCommons').disabled = false; }
   });
   $('commonsName').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnFetchCommons').click(); });
+
+  $('btnOpenRef').addEventListener('click', async () => {
+    const v = $('openRef').value.trim();
+    if (!v) { toast(t('toast.openBad')); return; }
+    const ref = resolvePageRef(v, S.wiki);
+    if (ref) await loadFromPage(ref.page, ref.wiki);
+  });
+  $('openRef').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnOpenRef').click(); });
 
   $('fileBase').addEventListener('change', async (e) => {
     const f = e.target.files[0];
@@ -1339,7 +1374,7 @@ function boot() {
     .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
     .then((css) => { TEMPLATE_CSS = css; drawPreview(); window.__appReady = true; })
     .catch((e) => { console.warn('template CSS not loaded', e); window.__appReady = true; });
-  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML, applyBlock, loadSample, loadFromPage, deepLink, handleUrlParams, fitCanvas };
+  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML, applyBlock, loadSample, loadFromPage, resolvePageRef, deepLink, handleUrlParams, fitCanvas };
 }
 
 document.addEventListener('DOMContentLoaded', boot);

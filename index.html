@@ -45,6 +45,15 @@
 <main data-step="1">
   <!-- ============ LEFT ============ -->
   <aside class="panel left">
+    <section class="card" id="cardOpenPage">
+      <h2 data-i18n="open.title">Open from a wiki page</h2>
+      <label class="f"><span data-i18n="open.label">Article title, prefixed title, or URL</span>
+        <input type="text" id="openRef" placeholder="en:Voyager 1 · eu:Zaldi · https://eu.wikipedia.org/wiki/Zaldi" spellcheck="false">
+      </label>
+      <button class="btn" id="btnOpenRef" style="width:100%" data-i18n="open.button">Open</button>
+      <p class="hintline" style="margin-top:8px" data-i18n="open.hint">Scope it with a wiki prefix (<code>en:</code>, <code>eu:</code>) or paste the article URL. A colon inside a bare title is treated as part of the title.</p>
+    </section>
+
     <section class="card" id="cardSource">
       <h2 data-i18n="src.title">Base image</h2>
       <div class="seg" id="srcSeg">

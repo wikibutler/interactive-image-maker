@@ -3,6 +3,26 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.5.0 — 2026-11-19
+
+"`?page=Voyager 1` — but how does it know which wiki?" It didn't, explicitly: it fell back to the
+target wiki (en by default) and only `?wiki=` could change that. Fixed.
+
+- `?page=` accepts a scoped title — `en:Voyager 1`, `eu:Zaldi`, plus `enwp:` / `euwp:` aliases —
+  or a pasted article URL (`https://eu.wikipedia.org/wiki/Zaldi`, `m.` hosts and `#sections`
+  included).
+- The colon rule: a prefix is only a wiki when it is one we know. `Star Trek: Voyager`,
+  `Category:Foo`, `File:X.svg` and `Wikipedia:Featured articles` stay titles — verified case by
+  case, since silently querying the wrong wiki for those would look like a broken tool.
+- A URL may name any language subdomain; we fetch from it and, if we have no dialect for that
+  wiki yet, keep the current export dialect and say which wiki the page came from.
+- `?page=` without a prefix still defaults to the current target wiki (en unless `?wiki=`), and
+  **Copy link** now always emits the scoped form (`page=en:Voyager+1`), so shared links state
+  their wiki instead of relying on a default.
+- New **Open from a wiki page** field in the left panel does the same thing without a URL.
+- Adding a wiki to `i18n.js` makes its prefix valid automatically.
+- Fixed the "no block on …" message, which printed doubled braces (`{{{{Interactive image}}}}`).
+
 ## v1.4.0 — 2026-11-19
 
 Two requests from review: make the canvas inspectable, and let a URL carry the template.
