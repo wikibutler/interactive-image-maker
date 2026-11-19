@@ -1,0 +1,10 @@
+# runtime droppings
+tunnel.log
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+
+# saved workbench projects (user data, not source)
+*.project.json
+project-*.json

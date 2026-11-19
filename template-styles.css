@@ -1,0 +1,651 @@
+/* Template:Interactive image/styles.css — fetched verbatim from English Wikipedia
+ * revision as of 2026-11-18T21:59:11Z (UTC), page https://en.wikipedia.org/wiki/Template:Interactive_image/styles.css
+ * © Wikipedia contributors, CC BY-SA 4.0. Only the preview stylesheet is copied here;
+ * this file is NOT edited by the workbench (the template uses the wiki copy).
+ * Refresh with: python3 refresh-template-css.py
+ */
+/* Txantiloi:Irudi interaktiboa/styles.css
+ * Irudi interaktiboa: legendako elementu baten edo marka baten gainean, dagokion
+ * geruza agertzen da. Elementuak anai-arrebak dira; «~» hautatzailea erabiltzen da
+ * (TemplateStyles-ek ez du :has() onartzen). Gehienez 24 elementu.
+ * Koloreak: Codex tokenak, hex balioa aurretik.
+ */
+
+/* Kutxa */
+.irudi-int {
+	margin: 1em 0;
+	padding: 0.8em 1em;
+	background-color: #f8f9fa;
+	background-color: var( --background-color-neutral-subtle, #f8f9fa );
+	border: 1px solid #c8ccd1;
+	border-top-color: var( --border-color-subtle, #c8ccd1 );
+	border-right-color: var( --border-color-subtle, #c8ccd1 );
+	border-bottom-color: var( --border-color-subtle, #c8ccd1 );
+	border-left-color: var( --border-color-subtle, #c8ccd1 );
+	border-radius: 4px;
+	color: #202122;
+	color: var( --color-base, #202122 );
+}
+
+.irudi-int-izenburua {
+	font-weight: bold;
+}
+
+.irudi-int-interaktiboa {
+	margin: 0.2em 0 0.6em 0;
+	font-size: 90%;
+	color: #54595d;
+	color: var( --color-subtle, #54595d );
+}
+
+.irudi-int-interaktiboa::before {
+	content: "\1F5B1\FE0F\00a0"; /* 🖱️ */
+}
+
+/* Edukia: irudia ezkerrean (zutabe-zabalera modulutik), legenda eskuinean */
+.irudi-int-edukia {
+	display: grid;
+	column-gap: 1.2em;
+	align-items: start;
+}
+
+.irudi-int-irudia {
+	position: relative;
+	grid-column: 1;
+}
+
+.irudi-int-oinarria img,
+.irudi-int-geruza img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/* Geruzak: oinarriaren gainean, ezkutuan */
+.irudi-int-geruza {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+/* Markak (koordenatuak irudiaren ehunekotan). Bilgarria kokatzen da; barruko
+ * «marka» da ikusten den borobila, txartela haren ondoan. */
+.irudi-int-puntua {
+	position: absolute;
+	z-index: 2;
+	transform: translate( -50%, -50% );
+}
+.irudi-int-puntua:hover {
+	z-index: 4;
+}
+.irudi-int-marka {
+	box-sizing: border-box;
+	min-width: 1.5em;
+	height: 1.5em;
+	padding: 0 0.3em;
+	white-space: nowrap;
+	border: 2px solid #ffffff;
+	border-radius: 0.75em;
+	color: #ffffff;
+	font-size: 80%;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+	cursor: default;
+	transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.irudi-int-puntua:hover .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+/* Legenda */
+.irudi-int-elementua {
+	position: relative;
+	grid-column: 2;
+	padding: 0.25em 0.5em 0.25em 2.9em;
+	border-radius: 4px;
+	font-size: 90%;
+	line-height: 1.35;
+	transition: background-color 0.15s ease;
+}
+
+.irudi-int-elementua:hover {
+	background-color: #eaecf0;
+	background-color: var( --background-color-interactive, #eaecf0 );
+}
+
+.irudi-int-zbk {
+	position: absolute;
+	left: 0.4em;
+	top: 0.3em;
+	box-sizing: border-box;
+	min-width: 1.45em;
+	height: 1.45em;
+	padding: 0 0.3em;
+	border-radius: 0.73em;
+	white-space: nowrap;
+	color: #ffffff;
+	font-size: 85%;
+	font-weight: bold;
+	line-height: 1.45em;
+	text-align: center;
+}
+
+.irudi-int-izena {
+	display: block;
+	font-weight: bold;
+}
+
+.irudi-int-testua {
+	display: block;
+	color: #54595d;
+	color: var( --color-subtle, #54595d );
+}
+
+/* Txartelak («azalpenak = txartela»): markaren barruan daude, beraz sagua
+ * txartelera eramatean ez da hover-a galtzen; legendako elementuak ere irekitzen du.
+ * Ezkutuan «clip» bidez: ez du sagurik harrapatzen, baina pantaila-irakurgailuek
+ * irakurtzen dute. Goiko betegarri gardenak markaren eta txartelaren arteko tartea
+ * zubi gisa betetzen du. */
+.irudi-int-txartela {
+	position: absolute;
+	z-index: 5;
+	box-sizing: border-box;
+	width: 18em;
+	max-width: 80vw;
+	padding-top: 0.4em;
+	clip: rect( 0, 0, 0, 0 );
+	opacity: 0;
+	transition: opacity 0.15s ease;
+	font-size: 0.9rem;
+	font-weight: normal;
+	line-height: 1.4;
+	white-space: normal;
+	text-align: left;
+	cursor: auto;
+}
+.irudi-int-txartela-edukia {
+	padding: 0.5em 0.7em;
+	background-color: #ffffff;
+	background-color: var( --background-color-base, #ffffff );
+	color: #202122;
+	color: var( --color-base, #202122 );
+	border: 1px solid #a2a9b1;
+	border-top-color: var( --border-color-base, #a2a9b1 );
+	border-right-color: var( --border-color-base, #a2a9b1 );
+	border-bottom-color: var( --border-color-base, #a2a9b1 );
+	border-left-color: var( --border-color-base, #a2a9b1 );
+	border-radius: 4px;
+	box-shadow: 0 2px 6px rgba( 0, 0, 0, 0.2 );
+}
+.irudi-int-txartela-izena {
+	margin-bottom: 0.2em;
+	font-weight: bold;
+}
+.irudi-int-txartela-testua p,
+.irudi-int-txartela-testua ul,
+.irudi-int-txartela-testua ol {
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+}
+.irudi-int-puntua:hover .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+/* Kokapena: markaren azpian, ezkerrera lerrokatuta (lehenetsia) */
+.irudi-int-txartela-puntua {
+	top: 100%;
+	left: 0;
+}
+.irudi-int-txartela-puntua.irudi-int-erdian {
+	left: 50%;
+	transform: translateX( -50% );
+}
+.irudi-int-txartela.irudi-int-eskuin {
+	left: auto;
+	right: 0;
+}
+.irudi-int-txartela.irudi-int-gora {
+	top: auto;
+	bottom: 100%;
+	padding-top: 0;
+	padding-bottom: 0.4em;
+}
+/* Txartelaren kopia legendan: pantaila handietan ezkutuan */
+.irudi-int-testua.irudi-int-testua-txartela {
+	display: none;
+}
+/* «goian» diseinua: irudia lehen errenkadan zabalera osoan, legenda zutabetan */
+.irudi-int-goian .irudi-int-irudia {
+	grid-column: 1 / -1;
+	grid-row: 1;
+	margin-bottom: 0.6em;
+}
+
+.irudi-int-goian .irudi-int-elementua {
+	grid-column: auto;
+	grid-row: auto;
+}
+
+/* Pantaila txikiak: legenda irudiaren azpian */
+@media screen and ( max-width: 640px ) {
+	.irudi-int-edukia {
+		grid-template-columns: minmax( 0, 1fr ) !important;
+	}
+
+	.irudi-int-irudia {
+		grid-row: 1 !important;
+		margin-bottom: 0.6em;
+	}
+
+	.irudi-int-elementua {
+		grid-column: 1;
+		grid-row: auto !important;
+	}
+}
+/* Ukipen-pantailetan eta inprimatzean, txartelen ordez testua legendan */
+@media screen and ( max-width: 640px ), print {
+	.irudi-int-txartela {
+		display: none;
+	}
+	.irudi-int-testua.irudi-int-testua-txartela {
+		display: block;
+	}
+}
+/* Inprimatzean: oinarria eta legenda bakarrik */
+@media print {
+	.irudi-int-interaktiboa,
+	.irudi-int-geruza {
+		display: none;
+	}
+}
+
+/* Elementu bakoitzaren lotura: elementua edo marka → geruza; elementua → marka eta txartela */
+.irudi-int-elementua.irudi-int-1:hover ~ .irudi-int-irudia .irudi-int-geruza-1,
+.irudi-int-puntua.irudi-int-1:hover ~ .irudi-int-geruza-1 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-1:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-1 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-1:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-1 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-1:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-1 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-2:hover ~ .irudi-int-irudia .irudi-int-geruza-2,
+.irudi-int-puntua.irudi-int-2:hover ~ .irudi-int-geruza-2 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-2:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-2 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-2:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-2 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-2:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-2 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-3:hover ~ .irudi-int-irudia .irudi-int-geruza-3,
+.irudi-int-puntua.irudi-int-3:hover ~ .irudi-int-geruza-3 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-3:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-3 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-3:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-3 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-3:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-3 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-4:hover ~ .irudi-int-irudia .irudi-int-geruza-4,
+.irudi-int-puntua.irudi-int-4:hover ~ .irudi-int-geruza-4 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-4:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-4 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-4:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-4 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-4:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-4 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-geruza-5,
+.irudi-int-puntua.irudi-int-5:hover ~ .irudi-int-geruza-5 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-5 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-5 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-5 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-6:hover ~ .irudi-int-irudia .irudi-int-geruza-6,
+.irudi-int-puntua.irudi-int-6:hover ~ .irudi-int-geruza-6 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-6:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-6 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-6:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-6 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-6:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-6 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-7:hover ~ .irudi-int-irudia .irudi-int-geruza-7,
+.irudi-int-puntua.irudi-int-7:hover ~ .irudi-int-geruza-7 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-7:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-7 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-7:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-7 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-7:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-7 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-8:hover ~ .irudi-int-irudia .irudi-int-geruza-8,
+.irudi-int-puntua.irudi-int-8:hover ~ .irudi-int-geruza-8 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-8:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-8 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-8:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-8 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-8:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-8 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-9:hover ~ .irudi-int-irudia .irudi-int-geruza-9,
+.irudi-int-puntua.irudi-int-9:hover ~ .irudi-int-geruza-9 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-9:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-9 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-9:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-9 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-9:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-9 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-10:hover ~ .irudi-int-irudia .irudi-int-geruza-10,
+.irudi-int-puntua.irudi-int-10:hover ~ .irudi-int-geruza-10 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-10:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-10 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-10:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-10 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-10:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-10 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-11:hover ~ .irudi-int-irudia .irudi-int-geruza-11,
+.irudi-int-puntua.irudi-int-11:hover ~ .irudi-int-geruza-11 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-11:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-11 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-11:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-11 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-11:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-11 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-12:hover ~ .irudi-int-irudia .irudi-int-geruza-12,
+.irudi-int-puntua.irudi-int-12:hover ~ .irudi-int-geruza-12 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-12:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-12 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-12:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-12 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-12:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-12 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-13:hover ~ .irudi-int-irudia .irudi-int-geruza-13,
+.irudi-int-puntua.irudi-int-13:hover ~ .irudi-int-geruza-13 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-13:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-13 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-13:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-13 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-13:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-13 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-14:hover ~ .irudi-int-irudia .irudi-int-geruza-14,
+.irudi-int-puntua.irudi-int-14:hover ~ .irudi-int-geruza-14 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-14:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-14 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-14:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-14 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-14:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-14 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-15:hover ~ .irudi-int-irudia .irudi-int-geruza-15,
+.irudi-int-puntua.irudi-int-15:hover ~ .irudi-int-geruza-15 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-15:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-15 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-15:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-15 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-15:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-15 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-16:hover ~ .irudi-int-irudia .irudi-int-geruza-16,
+.irudi-int-puntua.irudi-int-16:hover ~ .irudi-int-geruza-16 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-16:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-16 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-16:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-16 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-16:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-16 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-17:hover ~ .irudi-int-irudia .irudi-int-geruza-17,
+.irudi-int-puntua.irudi-int-17:hover ~ .irudi-int-geruza-17 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-17:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-17 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-17:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-17 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-17:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-17 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-18:hover ~ .irudi-int-irudia .irudi-int-geruza-18,
+.irudi-int-puntua.irudi-int-18:hover ~ .irudi-int-geruza-18 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-18:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-18 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-18:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-18 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-18:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-18 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-19:hover ~ .irudi-int-irudia .irudi-int-geruza-19,
+.irudi-int-puntua.irudi-int-19:hover ~ .irudi-int-geruza-19 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-19:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-19 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-19:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-19 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-19:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-19 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-20:hover ~ .irudi-int-irudia .irudi-int-geruza-20,
+.irudi-int-puntua.irudi-int-20:hover ~ .irudi-int-geruza-20 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-20:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-20 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-20:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-20 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-20:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-20 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-21:hover ~ .irudi-int-irudia .irudi-int-geruza-21,
+.irudi-int-puntua.irudi-int-21:hover ~ .irudi-int-geruza-21 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-21:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-21 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-21:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-21 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-21:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-21 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-22:hover ~ .irudi-int-irudia .irudi-int-geruza-22,
+.irudi-int-puntua.irudi-int-22:hover ~ .irudi-int-geruza-22 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-22:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-22 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-22:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-22 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-22:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-22 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-23:hover ~ .irudi-int-irudia .irudi-int-geruza-23,
+.irudi-int-puntua.irudi-int-23:hover ~ .irudi-int-geruza-23 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-23:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-23 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-23:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-23 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-23:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-23 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-24:hover ~ .irudi-int-irudia .irudi-int-geruza-24,
+.irudi-int-puntua.irudi-int-24:hover ~ .irudi-int-geruza-24 {
+	opacity: 1;
+}
+.irudi-int-elementua.irudi-int-24:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-24 {
+	z-index: 4;
+}
+.irudi-int-elementua.irudi-int-24:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-24 .irudi-int-marka {
+	transform: scale( 1.3 );
+	background-color: #3366cc !important;
+}
+.irudi-int-elementua.irudi-int-24:hover ~ .irudi-int-irudia .irudi-int-puntua.irudi-int-24 .irudi-int-txartela {
+	clip: auto;
+	opacity: 1;
+}
+
+.irudi-int-kredituak {
+	margin-top: 0.4em;
+	padding-top: 0.3em;
+	border-top: 1px solid var( --border-color-subtle, #c8ccd1 );
+	font-size: 85%;
+	text-align: right;
+	color: var( --color-subtle, #54595d );
+}
+.irudi-int-kredituak-edukia {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35em;
+}
+.irudi-int-kredituak-logoa img {
+	display: block;
+}
+.irudi-int-kredituak-testua a {
+	color: inherit;
+}
+.irudi-int-kredituak-testua a:hover {
+	color: var( --color-progressive, #36c );
+}
