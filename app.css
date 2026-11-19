@@ -240,3 +240,16 @@ main[data-step="x"] #cardExport{display:none}
   cursor:pointer; line-height:1;
 }
 .wizhead .nav button:disabled{opacity:.4; cursor:default}
+
+/* interface / target-wiki selectors */
+.langsel{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted);
+  font-weight:600; margin-left:10px}
+.langsel span{white-space:nowrap}
+.langsel select{
+  width:auto; padding:3px 6px; font-size:12px; font-weight:600; color:var(--ink);
+  border:1px solid var(--line); border-radius:6px; background:#fff;
+}
+@media (max-width:720px){
+  .langsel span{display:none}
+  .langsel{margin-left:4px}
+}

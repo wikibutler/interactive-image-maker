@@ -3,6 +3,28 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.1.0 — 2026-11-19
+
+Multilingual from the start: the tool now has an interface language and a target-wiki dialect,
+chosen independently, and neither is hard-coded in the logic.
+
+- `i18n.js` — two parallel tables: `I18N.ui.<code>` (152 interface strings) and
+  `I18N.wikis.<code>` (template name, parameter names, accepted values, module defaults, doc and
+  stylesheet pages) for **en** (`{{Interactive image}}`) and **eu** (`{{Irudi interaktiboa}}`).
+- Interface selector and target-wiki selector in the step bar. The target follows the interface
+  language until one is picked explicitly; both persist in `localStorage`.
+- Export/import are dialect-aware in both directions: the exporter writes the target wiki's
+  parameter names and values, the importer accepts any known dialect and retargets when the block
+  names another wiki's template. Field labels in the editor follow the target dialect
+  (`N-izena`, `N-etiketua`, …), the preview uses that wiki's default note/credit strings, and
+  the wiki links point at the right project.
+- `check-i18n.js` (`node check-i18n.js`) fails when a language or dialect is incomplete.
+- Fixed while doing this: wiki URLs used `encodeURIComponent`, which mangled subpage titles into
+  `Txantiloi%3A…`; the expert-mode button label was still hard-coded; an imported block that
+  retargeted the wiki did not refresh the export note.
+
+Basque interface strings are mine, not a native speaker's — corrections belong in `i18n.js`.
+
 ## v1.0.0 — 2026-11-19
 
 First committed state: the guided workbench.

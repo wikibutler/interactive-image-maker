@@ -20,10 +20,34 @@ const S = {
   sel: -1,
   previewW: '100%',
   step: 1,
-  expert: false
+  expert: false,
+  /* interface language and target wiki are independent: a Basque speaker may be
+   * writing for en.wp, and a wiki may have a template dialect but no UI translation */
+  lang: 'en',
+  wiki: 'en',
+  wikiAuto: true   // until the target is chosen explicitly, it follows the interface language
 };
 
 let TEMPLATE_CSS = '';
+
+/* ------------------------------------------------------------------- i18n */
+const I18N = window.I18N || { ui: {}, wikis: {}, languages: ['en'], fallback: 'en' };
+const LS_LANG = 'wb.lang';
+const LS_WIKI = 'wb.wiki';
+
+function t(key, vars) {
+  const cat = I18N.ui[S.lang] || {};
+  let s = cat[key];
+  if (s == null) s = (I18N.ui[I18N.fallback] || {})[key];
+  if (s == null) return key;
+  if (vars) Object.keys(vars).forEach((k) => { s = s.split('{' + k + '}').join(String(vars[k])); });
+  return s;
+}
+
+/* the template dialect of the wiki we are authoring for */
+function W() { return I18N.wikis[S.wiki] || I18N.wikis[I18N.fallback]; }
+function wikiBase() { return (W() && W().articleBase) || 'https://en.wikipedia.org/wiki/'; }
+function pageUrl(page) { return wikiBase() + encodeURI(String(page || '').replace(/ /g, '_')); }
 
 /* ---------------------------------------------------------------- utils */
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -77,10 +101,11 @@ async function commonsFile(name) {
 /* --------------------------------------------------------- mini wikitext */
 function renderWikitext(s) {
   let t = esc(s);
+  const base = wikiBase();
   t = t.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (m, a, b) =>
-    `<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(a.trim().replace(/ /g, '_'))}">${b}</a>`);
+    `<a href="${base}${encodeURI(a.trim().replace(/ /g, '_'))}">${b}</a>`);
   t = t.replace(/\[\[([^\]]+)\]\]/g, (m, a) =>
-    `<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(a.trim().replace(/ /g, '_'))}">${a}</a>`);
+    `<a href="${base}${encodeURI(a.trim().replace(/ /g, '_'))}">${a}</a>`);
   t = t.replace(/'{3}([^']+)'{3}/g, '<strong>$1</strong>');
   t = t.replace(/''([^']+)''/g, '<em>$1</em>');
   // crude list handling: lines starting with * become bullets
@@ -118,15 +143,14 @@ function buildWidgetHTML() {
   const pxFile = (src, alt) =>
     `<img src="${esc(src)}" alt="${esc(alt || '')}" width="${px}">`;
   const nameLink = (it) => it.link
-    ? `<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(String(it.link).trim().replace(/ /g, '_'))}">${esc(it.name)}</a>`
+    ? `<a href="${wikiBase()}${encodeURI(String(it.link).trim().replace(/ /g, '_'))}">${esc(it.name)}</a>`
     : esc(it.name || '');
 
   const out = [];
   out.push('<div class="irudi-int">');
   if (g.title) out.push(`<div class="irudi-int-izenburua">${renderWikitext(g.title)}</div>`);
-  const note = g.note || (g.captions === 'card'
-    ? 'Hover over a number or a list item to see details.'
-    : 'Hover over a number or a list item to compare.');
+  // the module supplies the default note; each wiki phrases it in its own language
+  const note = g.note || (g.captions === 'card' ? W().defaults.noteCard : W().defaults.note);
   out.push(`<div class="irudi-int-interaktiboa">${renderWikitext(note)}</div>`);
 
   if (g.layout === 'top') {
@@ -187,7 +211,7 @@ function buildWidgetHTML() {
     const target = 'https://commons.wikimedia.org/wiki/File:' + encodeURIComponent(imageName().replace(/ /g, '_'));
     out.push('<div class="irudi-int-kredituak"><span class="irudi-int-kredituak-edukia">' +
       '<span class="irudi-int-kredituak-logoa"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Commons-logo.svg" width="14" alt="Wikimedia Commons"></span>' +
-      `<span class="irudi-int-kredituak-testua"><a href="${target}">${esc(g.credits || 'Image credits')}</a></span></span></div>`);
+      `<span class="irudi-int-kredituak-testua"><a href="${target}">${esc(g.credits || W().defaults.credits)}</a></span></span></div>`);
   }
   out.push('</div>');
   return out.join('\n');
@@ -311,10 +335,10 @@ function renderList() {
   S.items.forEach((it, i) => {
     const c = document.createElement('div');
     c.className = 'chip' + (i === S.sel ? ' on' : '');
-    c.innerHTML = `<span class="n">${esc(it.label || (i + 1))}</span><span class="t">${esc(it.name || 'unnamed')}</span>`;
+    c.innerHTML = `<span class="n">${esc(it.label || (i + 1))}</span><span class="t">${esc(it.name || t('items.unnamed'))}</span>`;
     c.addEventListener('click', () => selectItem(i));
     const x = document.createElement('button');
-    x.className = 'x'; x.textContent = '×'; x.title = 'Delete item';
+    x.className = 'x'; x.textContent = '×'; x.title = t('form.delete');
     x.addEventListener('click', (ev) => { ev.stopPropagation(); removeItem(i); });
     c.appendChild(x);
     box.appendChild(c);
@@ -330,42 +354,43 @@ function removeItem(i) {
 
 function renderForm() {
   const host = $('itemForm');
-  if (S.sel < 0 || !S.items[S.sel]) {
-    host.innerHTML = '<div class="empty-note">Select a marker to edit its name, text, layer and link.</div>';
+  const it = S.items[S.sel];
+  if (S.sel < 0 || !it) {
+    host.innerHTML = `<div class="empty-note">${t('form.noSelection')}</div>`;
     return;
   }
-  const it = S.items[S.sel];
   const wiz = S.step === 3 && !S.expert;
+  const k = W().item;   // field names follow the target wiki's dialect
   const head = wiz
-    ? `<div class="wizhead"><span class="wz">Region ${S.sel + 1} of ${S.items.length}</span>
+    ? `<div class="wizhead"><span class="wz">${t('banner.3.count', { i: S.sel + 1, n: S.items.length })}</span>
         <span class="nav">
-          <button id="wzPrev" title="Previous region" ${S.sel === 0 ? 'disabled' : ''}>‹</button>
-          <button id="wzNext" title="Next region" ${S.sel === S.items.length - 1 ? 'disabled' : ''}>›</button>
+          <button id="wzPrev" title="${t('form.prevRegion')}" ${S.sel === 0 ? 'disabled' : ''}>‹</button>
+          <button id="wzNext" title="${t('form.nextRegion')}" ${S.sel === S.items.length - 1 ? 'disabled' : ''}>›</button>
         </span></div>`
     : '<div class="divider"></div>';
   host.innerHTML = `
     ${head}
-    <label class="f"><span>N-name <em style="font-style:normal;color:#bf3e33">required</em></span>
+    <label class="f"><span>N-${k.name} <em style="font-style:normal;color:#bf3e33">${t('form.required')}</em></span>
       <input type="text" data-k="name" value="${esc(it.name)}" placeholder="Skull"></label>
     <div class="row">
-      <label class="f"><span>N-label (badge)</span><input type="text" data-k="label" value="${esc(it.label)}" placeholder="${S.sel + 1}"></label>
-      <label class="f"><span>N-link (page)</span><input type="text" data-k="link" value="${esc(it.link)}" placeholder="Skull"></label>
+      <label class="f"><span>N-${k.label} ${t('form.labelSuffix')}</span><input type="text" data-k="label" value="${esc(it.label)}" placeholder="${S.sel + 1}"></label>
+      <label class="f"><span>N-${k.link} ${t('form.linkSuffix')}</span><input type="text" data-k="link" value="${esc(it.link)}" placeholder="Skull"></label>
     </div>
-    <label class="f"><span>N-text</span>
-      <textarea data-k="text" placeholder="The horse's skull is long…">${esc(it.text)}</textarea></label>
-    <label class="f"><span>N-image — layer file on Commons</span>
+    <label class="f"><span>N-${k.text}</span>
+      <textarea data-k="text" placeholder="${t('form.textPlaceholder')}">${esc(it.text)}</textarea></label>
+    <label class="f"><span>N-${k.image} — ${t('form.layer')}</span>
       <input type="text" data-k="layerName" value="${esc(it.layerName)}" placeholder="Base - skull.svg" spellcheck="false"></label>
     <div class="row">
-      <label class="f"><span>N-x</span><input type="number" data-k="x" value="${it.x != null ? Math.round(it.x) : ''}" step="1"></label>
-      <label class="f"><span>N-y</span><input type="number" data-k="y" value="${it.y != null ? Math.round(it.y) : ''}" step="1"></label>
+      <label class="f"><span>N-${k.x}</span><input type="number" data-k="x" value="${it.x != null ? Math.round(it.x) : ''}" step="1"></label>
+      <label class="f"><span>N-${k.y}</span><input type="number" data-k="y" value="${it.y != null ? Math.round(it.y) : ''}" step="1"></label>
     </div>
     <div class="row">
-      <button class="btn" id="btnLayerFile" style="flex:1">Attach local layer…</button>
-      <button class="btn" id="btnFetchLayer" style="flex:1">Fetch from Commons</button>
+      <button class="btn" id="btnLayerFile" style="flex:1">${t('form.attachLocal')}</button>
+      <button class="btn" id="btnFetchLayer" style="flex:1">${t('form.fetchCommons')}</button>
     </div>
     <input type="file" id="fileLayer" accept="image/*" hidden>
-    <p class="hintline" style="margin-top:8px">Layers must be the same canvas as the base (same <code>viewBox</code>), otherwise the revealed region is shifted.</p>
-    <button class="btn" id="btnDelete" style="width:100%;color:var(--err)">Delete this item</button>
+    <p class="hintline" style="margin-top:8px">${t('form.layerHint')}</p>
+    <button class="btn" id="btnDelete" style="width:100%;color:var(--err)">${t('form.delete')}</button>
   `;
   host.querySelectorAll('[data-k]').forEach((el) => {
     el.addEventListener('input', () => {
@@ -395,17 +420,17 @@ function renderForm() {
     const it = S.items[S.sel];
     it.layerSrc = src; it.layerW = dim ? dim.w : null; it.layerH = dim ? dim.h : null;
     if (!it.layerName) it.layerName = f.name;
-    renderForm(); schedulePreview(); validate(); toast('Layer attached — remember to upload it to Commons');
+    renderForm(); schedulePreview(); validate(); toast(t('toast.layerAttached'));
   });
   $('btnFetchLayer').addEventListener('click', async () => {
     const name = ($('itemForm').querySelector('[data-k="layerName"]').value || '').trim();
-    if (!name) { toast('Type the layer file name first'); return; }
+    if (!name) { toast(t('toast.needLayerName')); return; }
     try {
       const f = await commonsFile(name);
       const it = S.items[S.sel];
       it.layerName = f.name; it.layerSrc = f.src; it.layerW = f.w; it.layerH = f.h;
-      renderForm(); schedulePreview(); validate(); toast('Layer loaded: ' + f.w + '×' + f.h);
-    } catch (err) { toast('Layer: ' + err.message); }
+      renderForm(); schedulePreview(); validate(); toast(t('toast.layerLoaded', { w: f.w, h: f.h }));
+    } catch (err) { toast(t('toast.layerFail', { msg: err.message })); }
   });
 }
 
@@ -429,31 +454,32 @@ function validate() {
   const out = [];
   const push = (level, text) => out.push({ level, text });
 
-  if (!S.base.src) push('err', 'No base image loaded.');
-  else if (!imageName()) push('warn', 'Base image has no file name for the wikitext <code>image=</code>.');
-  if (!S.base.w || !S.base.h) push('err', 'original-width / original-height are not set.');
-  if (!S.items.length) push('err', 'No items — an empty box renders nothing useful.');
-  if (S.items.length > MAX_ITEMS) push('err', `${S.items.length} items: the module caps at ${MAX_ITEMS}.`);
+  const P = W().params;
+  if (!S.base.src) push('err', t('check.noImage'));
+  else if (!imageName()) push('warn', t('check.noName', { p: P.image }));
+  if (!S.base.w || !S.base.h) push('err', t('check.noUnits', { ow: P.ow, oh: P.oh }));
+  if (!S.items.length) push('err', t('check.noItems'));
+  if (S.items.length > MAX_ITEMS) push('err', t('check.tooMany', { n: S.items.length, max: MAX_ITEMS }));
 
   S.items.forEach((it, i) => {
     const n = i + 1;
-    if (!String(it.name || '').trim()) push('err', `#${n} has no name — it will not render at all.`);
-    if (it.x == null || it.y == null) push('warn', `#${n} has no marker coordinates (legend-only item).`);
+    if (!String(it.name || '').trim()) push('err', t('check.itemNoName', { n }));
+    if (it.x == null || it.y == null) push('warn', t('check.itemNoCoords', { n }));
     else if (it.x < 0 || it.x > S.base.w || it.y < 0 || it.y > S.base.h)
-      push('warn', `#${n} sits outside the canvas (${Math.round(it.x)}, ${Math.round(it.y)}).`);
-    if (!it.layerSrc) push('warn', `#${n} has no layer file — hovering it reveals nothing.`);
+      push('warn', t('check.itemOutside', { n, x: Math.round(it.x), y: Math.round(it.y) }));
+    if (!it.layerSrc) push('warn', t('check.itemNoLayer', { n }));
     if (it.layerW && S.base.w && (it.layerW !== S.base.w || it.layerH !== S.base.h))
-      push('warn', `#${n} layer is ${it.layerW}×${it.layerH} but base is ${S.base.w}×${S.base.h} — regions will be misplaced.`);
+      push('warn', t('check.layerSize', { n, lw: it.layerW, lh: it.layerH, w: S.base.w, h: S.base.h }));
     if (it.layerSrc && !String(it.layerName || '').trim())
-      push('warn', `#${n} layer is local only: add its Commons file name for the export.`);
+      push('warn', t('check.layerLocal', { n }));
     if (S.g.captions === 'card' && it.text && (it.x == null || it.y == null))
-      push('warn', `#${n} text lives in a card, but a card needs a marker — its text will vanish for readers.`);
+      push('warn', t('check.cardNoCoords', { n }));
   });
 
   if (!out.some((c) => c.level === 'err') && !out.some((c) => c.level === 'warn'))
-    push('ok', 'Looks consistent. Export, preview in a sandbox page, then hover every marker.');
+    push('ok', t('check.allGood'));
   else if (!out.some((c) => c.level === 'err'))
-    push('ok', 'No blocking errors.');
+    push('ok', t('check.noBlocking'));
 
   ul.innerHTML = out.map((c) => `<li class="${c.level}">${c.text}</li>`).join('');
   renderInlineExport();
@@ -461,56 +487,61 @@ function validate() {
 }
 
 /* --------------------------------------------------------------- export */
-function pad(k) { return (k + ' ').padEnd(15, ' '); }
-
 function exportText() {
   const g = S.g;
-  const L = [];
-  L.push('{{Interactive image');
-  if (imageName()) L.push(`|${pad('image')}= ${imageName()}`);
-  if (g.title) L.push(`|${pad('title')}= ${g.title}`);
-  if (g.note) L.push(`|${pad('note')}= ${g.note}`);
+  const P = W().params;     // parameter names of the target wiki
+  const K = W().item;
+  const V = W().values;
+  const rows = [];
+  const add = (k, v) => rows.push([k, v]);
+
+  if (imageName()) add(P.image, imageName());
+  if (g.title) add(P.title, g.title);
+  if (g.note) add(P.note, g.note);
   if (g.layout === 'top') {
-    L.push(`|${pad('layout')}= top`);
-    L.push(`|${pad('columns')}= ${clamp(Math.round(num(g.columns, 3)), 1, 4)}`);
+    add(P.layout, V.top);
+    add(P.columns, clamp(Math.round(num(g.columns, 3)), 1, 4));
   } else if (Math.round(num(g.width, 50)) !== 50) {
-    L.push(`|${pad('width')}= ${clamp(Math.round(num(g.width, 50)), 20, 80)}`);
+    add(P.width, clamp(Math.round(num(g.width, 50)), 20, 80));
   }
-  if (g.captions === 'card') L.push(`|${pad('captions')}= card`);
-  L.push(`|${pad('resolution')}= ${Math.max(60, Math.round(num(g.resolution, 600)))}`);
-  L.push(`|${pad('original-width')}= ${S.base.w}`);
-  L.push(`|${pad('original-height')}= ${S.base.h}`);
-  if (g.color && g.color.toLowerCase() !== DEFAULT_COLOR) L.push(`|${pad('color')}= ${g.color}`);
-  if (g.credits) L.push(`|${pad('credits')}= ${g.credits}`);
+  if (g.captions === 'card') add(P.captions, V.card);
+  add(P.resolution, Math.max(60, Math.round(num(g.resolution, 600))));
+  add(P.ow, S.base.w);
+  add(P.oh, S.base.h);
+  if (g.color && g.color.toLowerCase() !== DEFAULT_COLOR) add(P.color, g.color);
+  if (g.credits) add(P.credits, g.credits);
 
   S.items.forEach((it, i) => {
     const n = i + 1;
-    L.push(`|${pad(n + '-name')}= ${it.name || ''}`);
-    if (it.label) L.push(`|${pad(n + '-label')}= ${it.label}`);
+    add(`${n}-${K.name}`, it.name || '');
+    if (it.label) add(`${n}-${K.label}`, it.label);
     if (it.text) {
       const multi = /\n/.test(it.text) || /^[*#:;]/.test(it.text.trim());
-      L.push(`|${pad(n + '-text')}= ${multi ? '\n' + it.text : it.text}`);
+      add(`${n}-${K.text}`, multi ? '\n' + it.text : it.text);
     }
-    if (it.layerName) L.push(`|${pad(n + '-image')}= ${stripFilePrefix(it.layerName)}`);
-    if (it.link) L.push(`|${pad(n + '-link')}= ${it.link}`);
-    if (it.x != null) L.push(`|${pad(n + '-x')}= ${Math.round(it.x)}`);
-    if (it.y != null) L.push(`|${pad(n + '-y')}= ${Math.round(it.y)}`);
+    if (it.layerName) add(`${n}-${K.image}`, stripFilePrefix(it.layerName));
+    if (it.link) add(`${n}-${K.link}`, it.link);
+    if (it.x != null) add(`${n}-${K.x}`, Math.round(it.x));
+    if (it.y != null) add(`${n}-${K.y}`, Math.round(it.y));
   });
-  L.push('}}');
-  return L.join('\n');
+
+  // Basque keys are longer than "original-height", so size the column to the widest key
+  const width = Math.max(15, ...rows.map(([k]) => String(k).length));
+  const body = rows.map(([k, v]) => `|${String(k).padEnd(width)} = ${v}`);
+  return ['{{' + W().template, ...body, '}}'].join('\n');
 }
 
 /* ------------------------------------------------------------ commons UI */
 async function loadCommons(name) {
   const f = await commonsFile(name);
   setBase(f.src, f.name, f.w, f.h);
-  toast(`Loaded ${f.name} — ${f.w}×${f.h}`);
+  toast(t('toast.loaded', { name: f.name, w: f.w, h: f.h }));
 }
 
 function updateStatus() {
   $('statusline').textContent = S.base.src
-    ? `${S.base.name || 'local file'} · ${S.base.w}×${S.base.h}px · ${S.items.length} item(s)`
-    : 'No image loaded — start with a Commons file name or an upload';
+    ? t('app.status', { name: S.base.name || 'local file', w: S.base.w, h: S.base.h, n: S.items.length })
+    : t('app.idle');
 }
 
 function setBase(src, name, w, h) {
@@ -541,14 +572,14 @@ function fileToDataURL(file) {
 }
 
 function saveProject() {
-  const data = { v: 1, saved: new Date().toISOString(), base: S.base, g: S.g, items: S.items };
+  const data = { v: 1, saved: new Date().toISOString(), wiki: S.wiki, lang: S.lang, base: S.base, g: S.g, items: S.items };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = (S.base.name ? S.base.name.replace(/\.[a-z0-9]+$/i, '') : 'interactive-image') + '.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-  toast('Project saved');
+  toast(t('toast.saved'));
 }
 
 function loadProject(file) {
@@ -561,10 +592,11 @@ function loadProject(file) {
     if (S.base.src) { $('baseImg').src = S.base.src; $('baseImg').hidden = false; $('stageEmpty').hidden = true; }
     $('owInput').value = S.base.w || ''; $('ohInput').value = S.base.h || '';
     $('commonsName').value = S.base.name || '';
+    if (d.wiki && I18N.wikis[d.wiki]) S.wiki = d.wiki;
     syncGlobalsToForm();
-    renderAll();
+    applyLang();
     if (!S.expert) setStep(S.items.length ? 3 : 2, { silent: true });
-    toast('Project loaded');
+    toast(t('toast.projectLoaded'));
   });
 }
 
@@ -581,12 +613,34 @@ function syncGlobalsToForm() {
 }
 
 /* ------------------------------------------------------- wikitext import */
+/* every dialect collapses to one canonical key set, so a block written for any
+ * wiki can be opened here and re-emitted for any other */
+function dialectTables() {
+  const param = {}, suffix = {};
+  const layout = { side: 'side', top: 'top' };
+  const captions = { legend: 'legend', card: 'card' };
+  Object.values(I18N.wikis).forEach((w) => {
+    Object.entries(w.params || {}).forEach(([k, v]) => { param[v] = k; param[k] = k; });
+    Object.entries(w.item || {}).forEach(([k, v]) => { suffix[v] = k; suffix[k] = k; });
+    Object.entries(w.values || {}).forEach(([k, v]) => {
+      if (k === 'side' || k === 'top') layout[v] = k;
+      if (k === 'legend' || k === 'card') captions[v] = k;
+    });
+  });
+  return { param, suffix, layout, captions };
+}
+
 function parseWikitext(txt) {
-  const NAME = '(?:Interactive image|Irudi interaktiboa|Imagen interactiva|Imatge interactiva|Interaktives Bild)';
-  const m = txt.match(new RegExp('\\{\\{\\s*' + NAME + '\\b([\\s\\S]*?)\\}\\}\\s*$', 'i'))
-         || txt.match(new RegExp('\\{\\{\\s*' + NAME + '\\b([\\s\\S]*)\\}\\}', 'i'));
-  if (!m) throw new Error('No {{Interactive image …}} block found');
-  const body = m[1];
+  const names = Object.values(I18N.wikis).map((w) => w.template).filter(Boolean);
+  const NAME = '(?:' + names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')';
+  const m = txt.match(new RegExp('\\{\\{\\s*(' + NAME + ')\\b([\\s\\S]*?)\\}\\}\\s*$', 'i'))
+         || txt.match(new RegExp('\\{\\{\\s*(' + NAME + ')\\b([\\s\\S]*)\\}\\}', 'i'));
+  if (!m) throw new Error(t('import.fail'));
+  // the block names its wiki: follow it, so an imported eu.wp block exports as eu.wp
+  const found = names.find((n) => n.toLowerCase() === String(m[1]).toLowerCase());
+  const code = Object.keys(I18N.wikis).find((c) => (I18N.wikis[c].template || '').toLowerCase() === (found || '').toLowerCase());
+  if (code) S.wiki = code;
+  const body = m[2];
   const re = /\|\s*([A-Za-z0-9_-]+)\s*=\s*([\s\S]*?)(?=\s*\|\s*[A-Za-z0-9_-]+\s*=|$)/g;
   const params = {};
   let r;
@@ -598,34 +652,26 @@ function parseWikitext(txt) {
 
   const g = { ...S.g };
   const items = [];
-  const map = {
-    irudia: 'image', izenburua: 'title', oharra: 'note', diseinua: 'layout',
-    zabalera: 'width', zutabeak: 'columns', bereizmena: 'resolution',
-    'jatorrizko-zabalera': 'original-width', 'jatorrizko-altuera': 'original-height',
-    azalpenak: 'captions', kolorea: 'color', estiloa: 'style', kredituak: 'credits',
-    imagen: 'image', título: 'title', ancho: 'width'
-  };
-  const cv = (v) => v;
+  const T = dialectTables();
+  const FIELD = { name: 'name', label: 'label', text: 'text', image: 'layerName', link: 'link', x: 'x', y: 'y' };
   Object.entries(params).forEach(([rawK, v]) => {
-    const k = map[rawK] || rawK;
-    const im = k.match(/^(\d+)-(izena|etiketa|testua|irudia|esteka|name|label|text|image|link|x|y)$/);
+    const k = T.param[rawK] || rawK;
+    const im = k.match(/^(\d+)-(.+)$/);
     if (im) {
-      const n = +im[1], f = im[2];
-      const key = {
-        izena: 'name', etiketa: 'label', testua: 'text', irudia: 'layerName', esteka: 'link',
-        image: 'layerName'
-      }[f] || f;
+      const n = +im[1], f = T.suffix[im[2]] || im[2];
+      const key = FIELD[f];
+      if (!key) return;
       const it = items[n - 1] || (items[n - 1] = { name: '', label: '', text: '', link: '', layerName: '', layerSrc: '', x: null, y: null });
       if (key === 'x' || key === 'y') it[key] = parseFloat(v);
-      else it[key] = cv(v);
+      else it[key] = v;
       return;
     }
-    if (/^(original-width|jatorrizko-zabalera)$/.test(rawK)) S.base.w = parseInt(v, 10) || S.base.w;
-    if (/^(original-height|jatorrizko-altuera)$/.test(rawK)) S.base.h = parseInt(v, 10) || S.base.h;
+    if (k === 'ow') { S.base.w = parseInt(v, 10) || S.base.w; return; }
+    if (k === 'oh') { S.base.h = parseInt(v, 10) || S.base.h; return; }
     if (k === 'image') { S.base.name = stripFilePrefix(v); return; }
     if (k === 'width' || k === 'columns' || k === 'resolution') { g[k] = parseFloat(v); return; }
-    if (k === 'captions') { g.captions = /txartela|card/.test(v) ? 'card' : 'legend'; return; }
-    if (k === 'layout') { g.layout = /goian|top/.test(v) ? 'top' : 'side'; return; }
+    if (k === 'captions') { g.captions = T.captions[v] || 'legend'; return; }
+    if (k === 'layout') { g.layout = T.layout[v] || 'side'; return; }
     if (k in g) g[k] = v;
   });
   S.g = g;
@@ -650,22 +696,20 @@ function showExport() {
   const errs = checks.filter((c) => c.level === 'err');
   openModal(`
     <div class="modalbar">
-      <h3 style="margin:0">Wikitext</h3>
-      <button class="btn close" data-close>Close</button>
+      <h3 style="margin:0">${t('export.title')}</h3>
+      <button class="btn close" data-close>${t('btn.close')}</button>
     </div>
-    ${errs.length ? `<p style="color:#8a2b22">${errs.length} blocking problem(s): ${errs.map((e) => e.text.replace(/<[^>]+>/g, '')).join('; ')}</p>` : ''}
+    ${errs.length ? `<p style="color:#8a2b22">${t('export.blocking', { n: errs.length })}: ${errs.map((e) => e.text.replace(/<[^>]+>/g, '')).join('; ')}</p>` : ''}
     <pre id="exportPre">${esc(txt)}</pre>
     <div class="modalbar">
-      <button class="btn primary" id="btnCopy">Copy wikitext</button>
-      <button class="btn" id="btnDownload">Download .txt</button>
+      <button class="btn primary" id="btnCopy">${t('export.copy')}</button>
+      <button class="btn" id="btnDownload">${t('export.download')}</button>
     </div>
-    <p>Paste into a sandbox page and hover every marker before saving. The category
-    <code>Category:Pages using Interactive image</code> is added by the template itself.
-    Files must already be on Commons — the wikitext only names them.</p>
+    <p>${t('export.note', { cat: W().category })}</p>
   `);
   $('btnCopy').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(txt); toast('Copied'); }
-    catch (e) { toast('Clipboard blocked — select the text instead'); }
+    try { await navigator.clipboard.writeText(txt); toast(t('toast.copied')); }
+    catch (e) { toast(t('toast.clipboard')); }
   });
   $('btnDownload').addEventListener('click', () => {
     const a = document.createElement('a');
@@ -678,14 +722,14 @@ function showExport() {
 function showImport() {
   openModal(`
     <div class="modalbar">
-      <h3 style="margin:0">Import an existing block</h3>
-      <button class="btn close" data-close>Close</button>
+      <h3 style="margin:0">${t('import.title')}</h3>
+      <button class="btn close" data-close>${t('btn.close')}</button>
     </div>
-    <p>Paste a <code>{{Interactive image}}</code> or <code>{{Irudi interaktiboa}}</code> block — English or Basque parameter names both work.</p>
-    <textarea id="importArea" placeholder="{{Interactive image&#10;|image=A.svg&#10;|original-width=1000&#10;…}}"></textarea>
+    <p>${t('import.body')}</p>
+    <textarea id="importArea" placeholder="${esc('{{' + W().template + '\n|' + W().params.image + '=A.svg\n|' + W().params.ow + '=1000\n…}}')}"></textarea>
     <div class="modalbar" style="margin-top:10px">
-      <button class="btn primary" id="btnDoImport">Import</button>
-      <span class="hint" style="color:#72777d;font-size:12px">Layer images are re-fetched from Commons when the file name resolves.</span>
+      <button class="btn primary" id="btnDoImport">${t('import.button')}</button>
+      <span class="hint" style="color:#72777d;font-size:12px">${t('import.note')}</span>
     </div>
   `);
   $('btnDoImport').addEventListener('click', async () => {
@@ -696,7 +740,7 @@ function showImport() {
       $('owInput').value = S.base.w || ''; $('ohInput').value = S.base.h || '';
       renderAll();
       if (S.base.name) {
-        try { await loadCommons(S.base.name); } catch (e) { toast('Base image not loaded: ' + e.message); }
+        try { await loadCommons(S.base.name); } catch (e) { toast(t('toast.baseFail', { msg: e.message })); }
       }
       // re-fetch layers
       for (const it of S.items) {
@@ -707,64 +751,39 @@ function showImport() {
           } catch (e) { /* leave unresolved */ }
         }
       }
-      renderAll();
+      applyLang();   // the imported block may have retargeted the wiki
       if (!S.expert && S.items.length) setStep(3, { silent: true });
-      toast('Imported ' + S.items.length + ' item(s)');
+      toast(t('import.ok', { n: S.items.length }));
     } catch (e) { toast(e.message); }
   });
 }
 
 function showAbout() {
+  const P = W().params;
+  const vars = { ow: P.ow, oh: P.oh, example: P.image + '= · ' + P.title + '=' };
   openModal(`
     <div class="modalbar">
-      <h3 style="margin:0">About this workbench</h3>
-      <button class="btn close" data-close>Close</button>
+      <h3 style="margin:0">${t('about.title')}</h3>
+      <button class="btn close" data-close>${t('btn.close')}</button>
     </div>
-    <p>Authoring tool for <a href="https://en.wikipedia.org/wiki/Template:Interactive_image" target="_blank" rel="noopener">{{Interactive image}}</a>
-    — the pure-CSS marker + hover-layer template ported to English Wikipedia from Basque Wikipedia's
-    <a href="https://eu.wikipedia.org/wiki/Txantiloi:Irudi_interaktiboa" target="_blank" rel="noopener">{{Irudi interaktiboa}}</a>.</p>
-    <h3 style="font-size:14px;margin-top:14px">How the rendering works</h3>
-    <ul>
-      <li><code>Module:Interactive image</code> (Lua) emits the markup; <code>Template:Interactive image/styles.css</code> (20 KB of TemplateStyles) does all the interaction.</li>
-      <li>Legend rows are emitted <em>before</em> the image wrapper so one general-sibling rule can reveal a layer: <code>.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-geruza-5{opacity:1}</code>.</li>
-      <li>There is no JavaScript, no gadget and no <code>:has()</code> (TemplateStyles' sanitizer refuses it), which is why items are capped at 24 and the rules are unrolled by hand.</li>
-    </ul>
-    <p style="margin-top:10px">The default view is a four-step guide — choose image, place regions,
-    describe them, export. <strong>Show all panels</strong> (top right) switches to the free-form
-    three-panel layout, which is what you want when editing an existing project.</p>
-    <h3 style="font-size:14px;margin-top:14px">What this tool decides for you</h3>
-    <ul>
-      <li><strong>Units.</strong> Marker coordinates are written in the base file's own pixel size and <code>original-width</code>/<code>original-height</code> are filled in from the image. Percentages are never emitted — they silently misplace markers.</li>
-      <li><strong>Card placement.</strong> When <code>captions=card</code>, cards flip above the marker past 55% height and left past 65% width, matching the module's own class logic.</li>
-      <li><strong>Geometry check.</strong> Every layer's natural size is compared with the base; a different canvas is flagged, because that layer would appear shifted or scaled.</li>
-    </ul>
-    <h3 style="font-size:14px;margin-top:14px">What it does not do</h3>
-    <ul>
-      <li>It does not upload anything. File names in the export must already exist on Commons.</li>
-      <li>Wikitext in <code>N-text</code> is previewed with a small parser (links, bold, italics, lists). Templates, tables and references inside text are not rendered.</li>
-      <li>Fonts and skin colours come from your browser, not Vector 2022, so text metrics differ slightly from the live page.</li>
-      <li>Hover is the only trigger in the template itself — check the mobile preview, where cards collapse into legend text.</li>
-    </ul>
-    <p style="margin-top:14px">Preview CSS is fetched verbatim from
-    <a href="https://en.wikipedia.org/wiki/Template:Interactive_image/styles.css" target="_blank" rel="noopener">Template:Interactive image/styles.css</a>
-    (CC BY-SA 4.0, Wikipedia contributors). Documentation lives only at
-    <a href="https://en.wikipedia.org/wiki/Template:Interactive_image/doc" target="_blank" rel="noopener">Template:Interactive image/doc</a>.</p>
+    <p>${t('about.intro')}</p>
+    <p>${t('about.flow')}</p>
+    ${t('about.how')}
+    ${t('about.decides', vars)}
+    ${t('about.not')}
+    <p style="margin-top:14px">${t('about.footer')}</p>
+    <p><a href="${pageUrl(W().docPage)}" target="_blank" rel="noopener">${W().docPage}</a> ·
+       <a href="${pageUrl(W().stylesPage)}" target="_blank" rel="noopener">${W().stylesPage}</a></p>
   `);
 }
 
 /* ------------------------------------------------------------ step flow */
-const STEP_TEXT = {
-  1: ['Step 1 — choose a base image', "A Commons file name, an upload or a URL. The file's own pixel size becomes the coordinate system."],
-  2: ['Step 2 — click the image once per region', 'Each click drops a numbered marker; drag to adjust, arrow keys nudge.'],
-  3: ['Step 3 — describe each region', 'Name is required. Text shows in the legend, or in a hover card when the box is in card mode.'],
-  4: ['Step 4 — copy the wikitext', 'Paste into a sandbox page and hover every marker before saving. Files must already be on Commons.']
-};
 
 function setStep(n, opts) {
   const from = S.step;
   n = clamp(Math.round(n), 1, 4);
-  if (n >= 2 && !S.base.src) { toast('Load a base image first'); n = 1; }
-  if (n >= 3 && !S.items.length) { toast('Place at least one region first'); n = 2; }
+  if (n >= 2 && !S.base.src) { toast(t('toast.needImage')); n = 1; }
+  if (n >= 3 && !S.items.length) { toast(t('toast.needRegion')); n = 2; }
   S.step = n;
   // entering the describe step starts at the first region, not whichever was last clicked
   if (n === 3 && from !== 3) S.sel = 0;
@@ -790,38 +809,35 @@ function applyStep() {
     b.classList.toggle('done', !S.expert && !!done[n] && n !== S.step);
   });
   const mode = $('btnExpert');
-  if (mode) mode.textContent = S.expert ? 'Guided steps' : 'Show all panels';
+  if (mode) mode.textContent = S.expert ? t('btn.guided') : t('btn.expert');
   renderBanner(); renderForm(); renderInlineExport();
 }
 
 function renderBanner() {
-  const t = STEP_TEXT[S.step] || STEP_TEXT[1];
-  let hint = t[1];
-  if (S.step === 2) hint = t[1] + ' ' + S.items.length + ' of ' + MAX_ITEMS + ' placed.';
-  if (S.step === 3) hint = 'Region ' + Math.max(1, S.sel + 1) + ' of ' + S.items.length + '. ' + t[1];
+  const n = S.step;
+  let hint = t('banner.' + n + '.hint');
+  if (n === 3) hint = t('banner.3.count', { i: Math.max(1, S.sel + 1), n: S.items.length }) + ' ' + hint;
+  if (n === 2) hint += ' ' + t('banner.2.count', { n: S.items.length, max: MAX_ITEMS });
   const title = $('sbTitle');
   if (!title) return;
-  title.textContent = t[0];
-  $('sbHint').textContent = S.expert ? 'All panels shown — steps are off.' : hint;
+  title.textContent = t('banner.' + n + '.title');
+  $('sbHint').textContent = S.expert ? t('banner.expert') : hint;
   const back = $('sbBack'), next = $('sbNext');
-  back.disabled = S.step === 1;
-  if (S.step === 1) { next.textContent = 'Next: place regions'; next.disabled = !S.base.src; }
-  if (S.step === 2) { next.textContent = 'Next: describe them'; next.disabled = !S.items.length; }
-  if (S.step === 3) { next.textContent = 'Next: export'; next.disabled = false; }
-  if (S.step === 4) { next.textContent = 'Copy wikitext'; next.disabled = false; }
+  back.textContent = t('banner.back');
+  back.disabled = n === 1;
+  next.textContent = t('banner.next' + n);
+  next.disabled = (n === 1 && !S.base.src) || (n === 2 && !S.items.length);
 }
 
 function renderInlineExport() {
   const pre = $('inlineExport');
   if (!pre) return;
-  pre.textContent = (S.base.src && S.items.length)
-    ? exportText()
-    : 'Load an image and place at least one region — the wikitext appears here.';
+  pre.textContent = (S.base.src && S.items.length) ? exportText() : t('export.empty');
 }
 
-async function copyText(t) {
-  try { await navigator.clipboard.writeText(t); toast('Wikitext copied'); }
-  catch (e) { toast('Clipboard blocked — select the text instead'); }
+async function copyText(body) {
+  try { await navigator.clipboard.writeText(body); toast(t('toast.copied')); }
+  catch (e) { toast(t('toast.clipboard')); }
 }
 
 function downloadText(t, name) {
@@ -830,6 +846,43 @@ function downloadText(t, name) {
   a.download = name || 'interactive-image.txt';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+
+/* ------------------------------------------------------- interface language */
+function buildLangSelectors() {
+  const ls = $('selLang'), lw = $('selWiki');
+  ls.innerHTML = I18N.languages
+    .map((c) => `<option value="${c}">${esc((I18N.ui[c] || {}).langName || c)}</option>`).join('');
+  lw.innerHTML = Object.keys(I18N.wikis)
+    .map((c) => `<option value="${c}">${esc(I18N.wikis[c].label || c)}</option>`).join('');
+  ls.value = S.lang;
+  lw.value = S.wiki;
+}
+
+/* Re-render every string and every dialect-dependent label. Called on boot and
+ * whenever either selector changes — the two are independent on purpose. */
+function applyLang() {
+  document.documentElement.lang = S.lang;
+  document.title = `${t('app.title')} — {{${W().template}}}`;
+  $('appTitle').textContent = t('app.title');
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+
+  // the target wiki decides parameter names, not the interface language
+  $('lblOw').textContent = W().params.ow;
+  $('lblOh').textContent = W().params.oh;
+  $('gNote').placeholder = W().defaults.note;
+  $('gCredits').placeholder = W().defaults.credits;
+  $('exportNote').innerHTML = t('export.note', { cat: W().category });
+  $('footStyles').href = pageUrl(W().stylesPage);
+  $('footStyles').textContent = W().stylesPage;
+  $('footDoc').href = pageUrl(W().docPage);
+  $('footDoc').textContent = W().docPage;
+
+  $('selLang').value = S.lang;
+  $('selWiki').value = S.wiki;
+  renderAll();
+  applyStep();
 }
 
 /* ---------------------------------------------------------------- wiring */
@@ -847,10 +900,10 @@ function wire() {
 
   $('btnFetchCommons').addEventListener('click', async () => {
     const name = $('commonsName').value.trim();
-    if (!name) { toast('Type a Commons file name'); return; }
+    if (!name) { toast(t('toast.needCommonsName')); return; }
     $('btnFetchCommons').disabled = true;
     try { await loadCommons(name); }
-    catch (e) { toast('Commons: ' + e.message); }
+    catch (e) { toast(t('toast.commonsFail', { msg: e.message })); }
     finally { $('btnFetchCommons').disabled = false; }
   });
   $('commonsName').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btnFetchCommons').click(); });
@@ -860,10 +913,10 @@ function wire() {
     if (!f) return;
     const src = await fileToDataURL(f);
     const dim = await imgSize(src).catch(() => null);
-    if (!dim) { toast('Could not read that image'); return; }
+    if (!dim) { toast(t('toast.badImage')); return; }
     const name = $('uploadName').value.trim() || f.name;
     setBase(src, name, dim.w, dim.h);
-    toast(`Local image ${dim.w}×${dim.h} — upload it to Commons before exporting`);
+    toast(t('toast.localImage', { w: dim.w, h: dim.h }));
   });
   $('uploadName').addEventListener('input', () => {
     if (S.base.src) { S.base.name = stripFilePrefix($('uploadName').value); renderAll(); }
@@ -871,11 +924,11 @@ function wire() {
 
   $('btnLoadUrl').addEventListener('click', async () => {
     const url = $('urlSrc').value.trim();
-    if (!url) { toast('Paste an image URL'); return; }
+    if (!url) { toast(t('toast.needUrl')); return; }
     try {
       const dim = await imgSize(url);
       setBase(url, $('urlName').value.trim() || url.split('/').pop(), dim.w, dim.h);
-    } catch (e) { toast('Could not load that URL'); }
+    } catch (e) { toast(t('toast.badUrl')); }
   });
 
   $('owInput').addEventListener('input', () => {
@@ -926,7 +979,7 @@ function wire() {
   $('frame').addEventListener('mouseleave', () => { $('cursorPos').hidden = true; });
 
   $('btnAdd').addEventListener('click', () => {
-    if (!S.base.src) { toast('Load a base image first'); return; }
+    if (!S.base.src) { toast(t('toast.needImage')); return; }
     addItem(Math.round(S.base.w / 2), Math.round(S.base.h / 2));
   });
 
@@ -964,6 +1017,19 @@ function wire() {
     });
   });
 
+  $('selLang').addEventListener('change', (e) => {
+    S.lang = e.target.value;
+    // a Basque speaker writing for eu.wp should not have to pick the wiki twice
+    if (S.wikiAuto && I18N.wikis[S.lang]) S.wiki = S.lang;
+    try { localStorage.setItem(LS_LANG, S.lang); } catch (_) { /* private mode */ }
+    applyLang();
+  });
+  $('selWiki').addEventListener('change', (e) => {
+    S.wiki = e.target.value;
+    S.wikiAuto = false;
+    try { localStorage.setItem(LS_WIKI, S.wiki); } catch (_) { /* private mode */ }
+    applyLang();
+  });
   $('stepper').addEventListener('click', (e) => {
     const b = e.target.closest('.step');
     if (b) setStep(+b.dataset.step);
@@ -981,7 +1047,7 @@ function wire() {
   $('btnAbout').addEventListener('click', showAbout);
   $('btnSave').addEventListener('click', saveProject);
   $('btnNew').addEventListener('click', () => {
-    if (!confirm('Clear the workbench? Unsaved work is lost.')) return;
+    if (!confirm(t('toast.newConfirm'))) return;
     S.base = { src: '', name: '', w: 0, h: 0 };
     S.g = { title: '', note: '', layout: 'side', captions: 'legend', width: 50, columns: 3, resolution: 600, color: DEFAULT_COLOR, credits: '' };
     S.items = []; S.sel = -1;
@@ -993,7 +1059,7 @@ function wire() {
   });
   $('fileProject').addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
-    loadProject(f).catch((err) => toast('Project: ' + err.message));
+    loadProject(f).catch((err) => toast(t('toast.projectFail', { msg: err.message })));
     e.target.value = '';
   });
   $('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
@@ -1001,16 +1067,16 @@ function wire() {
   // paste a Commons file name anywhere outside a field → load it
   window.addEventListener('paste', (e) => {
     if (/^(input|textarea)$/i.test(document.activeElement.tagName)) return;
-    const t = (e.clipboardData || window.clipboardData).getData('text');
-    if (t && /\.(svg|png|jpe?g|gif|webp)$/i.test(t.trim())) {
-      $('commonsName').value = t.trim();
+    const clip = (e.clipboardData || window.clipboardData).getData('text');
+    if (clip && /\.(svg|png|jpe?g|gif|webp)$/i.test(clip.trim())) {
+      $('commonsName').value = clip.trim();
       $('btnFetchCommons').click();
     }
   });
 }
 
 function addItem(x, y) {
-  if (S.items.length >= MAX_ITEMS) { toast('24 items is the module maximum'); return; }
+  if (S.items.length >= MAX_ITEMS) { toast(t('toast.maxItems', { max: MAX_ITEMS })); return; }
   S.items.push({ name: '', label: '', text: '', link: '', layerName: '', layerSrc: '', x, y });
   S.sel = S.items.length - 1;
   renderList(); renderForm(); renderMarkers(); schedulePreview(); validate();
@@ -1022,15 +1088,26 @@ function addItem(x, y) {
 
 /* ------------------------------------------------------------------ boot */
 function boot() {
+  // interface language: saved choice, else the browser's language if we ship it
+  try {
+    const savedLang = localStorage.getItem(LS_LANG);
+    const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    S.lang = (savedLang && I18N.ui[savedLang]) ? savedLang : (I18N.ui[nav] ? nav : I18N.fallback);
+    const savedWiki = localStorage.getItem(LS_WIKI);
+    S.wikiAuto = !(savedWiki && I18N.wikis[savedWiki]);
+    S.wiki = S.wikiAuto ? (I18N.wikis[S.lang] ? S.lang : I18N.fallback) : savedWiki;
+  } catch (_) { /* storage blocked — the defaults stand */ }
+
   wire();
+  buildLangSelectors();
   syncGlobalsToForm();
-  renderAll();
-  applyStep();
+  applyLang();
+
   fetch('template-styles.css')
-    .then((r) => r.ok ? r.text() : Promise.reject(new Error(r.status)))
-    .then((t) => { TEMPLATE_CSS = t; drawPreview(); window.__appReady = true; })
+    .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
+    .then((css) => { TEMPLATE_CSS = css; drawPreview(); window.__appReady = true; })
     .catch((e) => { console.warn('template CSS not loaded', e); window.__appReady = true; });
-  window.__app = { S, exportText, addItem, setBase, parseWikitext, buildWidgetHTML };
+  window.__app = { S, t, W, I18N, applyLang, exportText, addItem, setBase, parseWikitext, buildWidgetHTML };
 }
 
 document.addEventListener('DOMContentLoaded', boot);

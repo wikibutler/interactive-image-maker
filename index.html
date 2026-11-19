@@ -12,99 +12,109 @@
   <div class="brand">
     <div class="mark" aria-hidden="true">◧</div>
     <div>
-      <h1>Interactive image workbench</h1>
-      <p id="statusline">No image loaded</p>
+      <h1 id="appTitle">Interactive image workbench</h1>
+      <p id="statusline" data-i18n="app.idle">No image loaded</p>
     </div>
   </div>
   <div class="actions">
-    <button class="btn ghost" id="btnNew">New</button>
-    <button class="btn ghost" id="btnImport">Import wikitext</button>
-    <button class="btn ghost" id="btnSave">Save project</button>
-    <label class="btn ghost" for="fileProject" style="margin:0">Load project</label>
+    <button class="btn ghost" id="btnNew" data-i18n="btn.new">New</button>
+    <button class="btn ghost" id="btnImport" data-i18n="btn.import">Import wikitext</button>
+    <button class="btn ghost" id="btnSave" data-i18n="btn.save">Save project</button>
+    <label class="btn ghost" for="fileProject" style="margin:0" data-i18n="btn.load">Load project</label>
     <input type="file" id="fileProject" accept=".json,application/json" hidden>
-    <button class="btn ghost" id="btnAbout">About</button>
-    <button class="btn primary" id="btnExport">Export wikitext</button>
+    <button class="btn ghost" id="btnAbout" data-i18n="btn.about">About</button>
+    <button class="btn primary" id="btnExport" data-i18n="btn.export">Export wikitext</button>
   </div>
 </header>
 
 <nav class="stepper" id="stepper">
-  <button class="step on" data-step="1"><span class="num">1</span><span class="lbl">Choose image</span></button>
-  <button class="step" data-step="2"><span class="num">2</span><span class="lbl">Place regions</span></button>
-  <button class="step" data-step="3"><span class="num">3</span><span class="lbl">Describe them</span></button>
-  <button class="step" data-step="4"><span class="num">4</span><span class="lbl">Export</span></button>
+  <button class="step on" data-step="1"><span class="num">1</span><span class="lbl" data-i18n="step.1">Choose image</span></button>
+  <button class="step" data-step="2"><span class="num">2</span><span class="lbl" data-i18n="step.2">Place regions</span></button>
+  <button class="step" data-step="3"><span class="num">3</span><span class="lbl" data-i18n="step.3">Describe them</span></button>
+  <button class="step" data-step="4"><span class="num">4</span><span class="lbl" data-i18n="step.4">Export</span></button>
   <span class="spacer"></span>
-  <button class="modebtn" id="btnExpert" title="Show every panel at once">Show all panels</button>
+  <label class="langsel"><span data-i18n="lang.interface">Interface</span>
+    <select id="selLang"></select></label>
+  <label class="langsel"><span data-i18n="lang.target">Target wiki</span>
+    <select id="selWiki"></select></label>
+  <button class="modebtn" id="btnExpert" data-i18n="btn.expert" data-i18n-title="modebtn.title">Show all panels</button>
 </nav>
 
 <main data-step="1">
   <!-- ============ LEFT ============ -->
   <aside class="panel left">
     <section class="card" id="cardSource">
-      <h2>Base image</h2>
+      <h2 data-i18n="src.title">Base image</h2>
       <div class="seg" id="srcSeg">
-        <button data-mode="commons" class="on">Commons</button>
-        <button data-mode="upload">Upload</button>
-        <button data-mode="url">URL</button>
+        <button data-mode="commons" class="on" data-i18n="src.commons">Commons</button>
+        <button data-mode="upload" data-i18n="src.upload">Upload</button>
+        <button data-mode="url" data-i18n="src.url">URL</button>
       </div>
 
       <div id="paneCommons">
-        <label class="f"><span>Commons file name (no <code>File:</code> needed)</span>
+        <label class="f"><span data-i18n="src.commonsLabel">Commons file name (no <code>File:</code> needed)</span>
           <input type="text" id="commonsName" placeholder="Zaldiaren eta gizakiaren hezurdura.svg" autocomplete="off" spellcheck="false">
         </label>
-        <button class="btn" id="btnFetchCommons" style="width:100%">Load from Commons</button>
-        <p class="hintline" style="margin-top:8px">SVG or any raster. The image's own pixel size becomes <code>original-width</code>/<code>original-height</code>.</p>
+        <button class="btn" id="btnFetchCommons" style="width:100%" data-i18n="src.loadCommons">Load from Commons</button>
+        <p class="hintline" style="margin-top:8px" data-i18n="src.commonsHint">SVG or any raster.</p>
       </div>
 
       <div id="paneUpload" hidden>
-        <label class="f"><span>Local file (preview only — you still upload it to Commons)</span>
+        <label class="f"><span data-i18n="src.localLabel">Local file</span>
           <input type="file" id="fileBase" accept="image/*">
         </label>
-        <label class="f"><span>Commons name to write into the wikitext</span>
+        <label class="f"><span data-i18n="src.commonsName">Commons name</span>
           <input type="text" id="uploadName" placeholder="My diagram.svg" spellcheck="false">
         </label>
       </div>
 
       <div id="paneUrl" hidden>
-        <label class="f"><span>Image URL</span>
+        <label class="f"><span data-i18n="src.urlLabel">Image URL</span>
           <input type="text" id="urlSrc" placeholder="https://upload.wikimedia.org/…" spellcheck="false">
         </label>
-        <label class="f"><span>Commons name to write into the wikitext</span>
+        <label class="f"><span data-i18n="src.commonsName">Commons name</span>
           <input type="text" id="urlName" placeholder="My diagram.svg" spellcheck="false">
         </label>
-        <div class="row"><button class="btn" id="btnLoadUrl" style="width:100%">Load URL</button></div>
+        <div class="row"><button class="btn" id="btnLoadUrl" style="width:100%" data-i18n="src.loadUrl">Load URL</button></div>
       </div>
 
       <div class="divider"></div>
       <div class="row">
-        <label class="f" style="margin:0"><span>original-width</span><input type="number" id="owInput" min="1" step="1"></label>
-        <label class="f" style="margin:0"><span>original-height</span><input type="number" id="ohInput" min="1" step="1"></label>
+        <label class="f" style="margin:0"><span id="lblOw">original-width</span><input type="number" id="owInput" min="1" step="1"></label>
+        <label class="f" style="margin:0"><span id="lblOh">original-height</span><input type="number" id="ohInput" min="1" step="1"></label>
       </div>
-      <p class="hintline" style="margin-top:6px">Set from the file automatically. Markers are stored in these units — never percentages.</p>
+      <p class="hintline" style="margin-top:6px" data-i18n="src.unitsHint">Set from the file automatically.</p>
     </section>
 
     <section class="card" id="cardBox">
-      <h2>Box settings <span class="hint">optional</span></h2>
-      <label class="f"><span>title</span><input type="text" id="gTitle" placeholder="Horse and human skeleton"></label>
-      <label class="f"><span>note</span>
-        <input type="text" id="gNote" placeholder="Hover over a number or a list item to compare."></label>
+      <h2><span data-i18n="box.title">Box settings</span> <span class="hint" data-i18n="box.optional">optional</span></h2>
+      <label class="f"><span data-i18n="box.titleField">title</span><input type="text" id="gTitle" placeholder="Horse and human skeleton"></label>
+      <label class="f"><span data-i18n="box.note">note</span>
+        <input type="text" id="gNote"></label>
       <div class="row">
-        <label class="f"><span>layout</span>
-          <select id="gLayout"><option value="side">side (image left)</option><option value="top">top (full width)</option></select>
+        <label class="f"><span data-i18n="box.layout">layout</span>
+          <select id="gLayout">
+            <option value="side" data-i18n="box.side">side (image left)</option>
+            <option value="top" data-i18n="box.top">top (full width)</option>
+          </select>
         </label>
-        <label class="f"><span>captions</span>
-          <select id="gCaptions"><option value="legend">legend</option><option value="card">card</option></select>
+        <label class="f"><span data-i18n="box.captions">captions</span>
+          <select id="gCaptions">
+            <option value="legend" data-i18n="box.legend">legend</option>
+            <option value="card" data-i18n="box.card">card</option>
+          </select>
         </label>
       </div>
       <div class="row">
-        <label class="f"><span>width % (side)</span><input type="number" id="gWidth" min="20" max="80" step="5" value="50"></label>
-        <label class="f"><span>columns (top)</span><input type="number" id="gColumns" min="1" max="4" step="1" value="3"></label>
+        <label class="f"><span data-i18n="box.width">width % (side)</span><input type="number" id="gWidth" min="20" max="80" step="5" value="50"></label>
+        <label class="f"><span data-i18n="box.columns">columns (top)</span><input type="number" id="gColumns" min="1" max="4" step="1" value="3"></label>
       </div>
       <div class="row">
-        <label class="f"><span>resolution px</span><input type="number" id="gResolution" min="100" max="2000" step="50" value="600"></label>
-        <label class="f"><span>color</span><input type="text" id="gColor" value="#202122" spellcheck="false"></label>
+        <label class="f"><span data-i18n="box.resolution">resolution px</span><input type="number" id="gResolution" min="100" max="2000" step="50" value="600"></label>
+        <label class="f"><span data-i18n="box.color">color</span><input type="text" id="gColor" value="#202122" spellcheck="false"></label>
       </div>
-      <label class="f" style="margin-bottom:0"><span>credits (link text)</span>
-        <input type="text" id="gCredits" placeholder="Image credits"></label>
+      <label class="f" style="margin-bottom:0"><span data-i18n="box.credits">credits (link text)</span>
+        <input type="text" id="gCredits"></label>
     </section>
   </aside>
 
@@ -113,10 +123,10 @@
     <div class="stepbanner" id="stepBanner">
       <div class="sb-text">
         <strong id="sbTitle">Step 1 — choose a base image</strong>
-        <span id="sbHint">Pick a file whose regions you can separate into layers later.</span>
+        <span id="sbHint"></span>
       </div>
       <div class="sb-actions">
-        <button class="btn ghost" id="sbBack">Back</button>
+        <button class="btn ghost" id="sbBack" data-i18n="banner.back">Back</button>
         <button class="btn primary" id="sbNext">Next</button>
       </div>
     </div>
@@ -125,8 +135,8 @@
       <div class="frame" id="frame">
         <div class="empty" id="stageEmpty">
           <div>
-            <strong>Load a base image to begin</strong><br>
-            Use the panel on the left — a Commons file name, an upload, or a URL.
+            <strong data-i18n="stage.emptyTitle">Load a base image to begin</strong><br>
+            <span data-i18n="stage.emptyBody">Use the panel on the left.</span>
           </div>
         </div>
         <img class="base" id="baseImg" alt="" hidden>
@@ -137,59 +147,60 @@
     </div>
 
     <div class="previewbar">
-      <strong style="color:var(--ink)">Live preview</strong>
-      <span class="hint" id="previewMode">hover a marker or a legend row</span>
+      <strong style="color:var(--ink)" data-i18n="preview.title">Live preview</strong>
+      <span class="hint" id="previewMode" data-i18n="preview.hint">hover a marker or a legend row</span>
       <span class="spacer"></span>
-      <span>viewport</span>
-      <button class="pill on" data-pw="100%">desktop</button>
-      <button class="pill" data-pw="360px">mobile 360</button>
+      <span data-i18n="preview.viewport">viewport</span>
+      <button class="pill on" data-pw="100%" data-i18n="preview.desktop">desktop</button>
+      <button class="pill" data-pw="360px" data-i18n="preview.mobile">mobile 360</button>
     </div>
     <div class="previewwrap" id="previewWrap">
-      <iframe id="preview" title="Live preview of the rendered template"></iframe>
+      <iframe id="preview" title="Live preview" data-i18n-title="preview.iframeTitle"></iframe>
     </div>
 
     <section class="card" id="cardExport">
-      <h2>Wikitext <span class="hint">paste into a sandbox page first</span></h2>
+      <h2><span data-i18n="export.title">Wikitext</span> <span class="hint" data-i18n="export.sandbox">paste into a sandbox page first</span></h2>
       <div class="row" style="margin-bottom:8px">
-        <button class="btn primary" id="btnCopyInline" style="flex:0 0 auto">Copy wikitext</button>
-        <button class="btn" id="btnDownloadInline" style="flex:0 0 auto">Download .txt</button>
+        <button class="btn primary" id="btnCopyInline" style="flex:0 0 auto" data-i18n="export.copy">Copy wikitext</button>
+        <button class="btn" id="btnDownloadInline" style="flex:0 0 auto" data-i18n="export.download">Download .txt</button>
       </div>
       <pre id="inlineExport" class="inline-pre"></pre>
-      <p class="hintline">Files must already be uploaded to Commons — the wikitext only names them. The template adds
-        <code>Category:Pages using Interactive image</code> by itself.</p>
+      <p class="hintline" id="exportNote"></p>
     </section>
   </section>
 
   <!-- ============ RIGHT ============ -->
   <aside class="panel right">
     <section class="card" id="cardHelp">
-      <h2>Before you start</h2>
+      <h2 data-i18n="help.title">Before you start</h2>
       <ul class="helplist">
-        <li><strong>A vector source</strong> (SVG, or a layered raster) — you split the picture into one file per region.</li>
-        <li><strong>Base + layers on Commons</strong>, all on the same canvas. A layer with a different <code>viewBox</code> renders shifted.</li>
-        <li><strong>Marker positions</strong> come from clicking the image here — you never type percentages.</li>
+        <li data-i18n="help.1"></li>
+        <li data-i18n="help.2"></li>
+        <li data-i18n="help.3"></li>
       </ul>
-      <p class="hintline">Step 1 of 4. Loading an image moves you on automatically.</p>
+      <p class="hintline" data-i18n="help.foot"></p>
     </section>
 
     <section class="card" id="cardItems">
-      <h2><span id="itemsTitle">Regions</span> <span class="hint" id="countHint">0 / 24</span></h2>
+      <h2><span id="itemsTitle" data-i18n="items.title">Regions</span> <span class="hint" id="countHint">0 / 24</span></h2>
       <div class="itemlist" id="itemList"></div>
       <div id="itemForm"></div>
-      <button class="btn" id="btnAdd" style="width:100%;margin-top:8px">+ Add region at centre</button>
+      <button class="btn" id="btnAdd" style="width:100%;margin-top:8px" data-i18n="items.add">+ Add region at centre</button>
     </section>
 
     <section class="card checks" id="cardChecks">
-      <h2>Checks</h2>
+      <h2 data-i18n="check.title">Checks</h2>
       <ul id="checkList"></ul>
     </section>
   </aside>
 </main>
 
 <div class="footer">
-  Preview CSS: <a href="https://en.wikipedia.org/wiki/Template:Interactive_image/styles.css" target="_blank" rel="noopener">Template:Interactive image/styles.css</a>
-  from English Wikipedia, © Wikipedia contributors, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.
-  Documentation: <a href="https://en.wikipedia.org/wiki/Template:Interactive_image/doc" target="_blank" rel="noopener">Template:Interactive image/doc</a>.
+  <span data-i18n="footer.css">Preview CSS:</span>
+  <a id="footStyles" href="https://en.wikipedia.org/wiki/Template:Interactive_image/styles.css" target="_blank" rel="noopener">Template:Interactive image/styles.css</a>
+  <span data-i18n="footer.credit">© Wikipedia contributors, CC BY-SA 4.0.</span>
+  <span data-i18n="footer.doc">Documentation:</span>
+  <a id="footDoc" href="https://en.wikipedia.org/wiki/Template:Interactive_image/doc" target="_blank" rel="noopener">Template:Interactive image/doc</a>.
 </div>
 
 <!-- ============ MODALS ============ -->
@@ -198,6 +209,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

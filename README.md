@@ -31,6 +31,11 @@ So the tool's three load-bearing decisions:
 
 ## Using it
 
+Two selectors sit at the right of the step bar: **Interface** (the language of this tool) and
+**Target wiki** (which wiki's template dialect the export is written in). They are independent —
+a Basque speaker can write a block for en.wp — and the target follows the interface language
+until you pick one explicitly.
+
 The default view is a four-step guide (top bar): **1 Choose image → 2 Place regions →
 3 Describe them → 4 Export**. Each step shows only the surfaces it needs, the step you are on
 is highlighted, and *Next* refuses to advance without the prerequisite (no image, no regions).
@@ -76,6 +81,42 @@ Refresh the copied stylesheet after the template's CSS changes:
 python3 refresh-template-css.py
 ```
 
+## Languages and targets
+
+Everything language-specific lives in `i18n.js`, in two parallel tables:
+
+- `I18N.ui.<code>` — the workbench's own interface strings (152 keys; `{}` placeholders for
+  counts and names).
+- `I18N.wikis.<code>` — the template *dialect* on that wiki: template name, per-parameter
+  names (`irudia` vs `image`), accepted values (`goian`/`top`, `txartela`/`card`), the module's
+  default note and credit strings, and the doc/styles page titles.
+
+Currently: **en** (English Wikipedia, `{{Interactive image}}`) and **eu** (Basque Wikipedia,
+`{{Irudi interaktiboa}}`). Interface and target are separate, so the tool can write one wiki's
+dialect in the other's interface language.
+
+What follows from the dialect, automatically:
+
+- the emitted wikitext — template name, every parameter name, and the `side/top`,
+  `legend/card` values;
+- the field labels in the editor (`N-izena`, `N-etiketua`, … when the target is eu.wp);
+- the default note and credit link text in the preview;
+- the wiki the `[[links]]` in region text point at;
+- the footer/documentation links.
+
+### Adding a language
+
+1. Copy the `en` block in `I18N.ui` to `I18N.ui.<code>`, translate the values, add the code to
+   `I18N.languages` and set `langName`.
+2. Copy `I18N.wikis.en` to `I18N.wikis.<code>` and change `template`, `module`, `stylesPage`,
+   `docPage`, `category`, `articleBase`, the two `params` maps, `item`, `values` and `defaults`
+   to what the module on that wiki actually reads.
+3. Run `node check-i18n.js` — it fails if any key or dialect field is missing, so a half-finished
+   translation cannot ship silently.
+
+A wiki can be added without a UI translation (the interface falls back to English): that is the
+normal case when a community translates the template but not this tool.
+
 ## Version control
 
 This directory is a git repository: one commit per behaviour change, so any revision can be
@@ -104,6 +145,8 @@ entry; `tunnel.log` and saved projects stay untracked.
 | `app.css` | workbench chrome (not the template's CSS) |
 | `template-styles.css` | verbatim copy of the template's TemplateStyles sheet — the preview's only styling |
 | `refresh-template-css.py` | re-pull that sheet, with revision timestamp in the header |
+| `i18n.js` | interface strings per language + template dialects per wiki |
+| `check-i18n.js` | `node check-i18n.js` — fails if a language or dialect is incomplete |
 
 Provenance: built by Hermes Agent for Andrew Lih, November 2026, while auditing
 `{{Interactive image}}` on en.wp. Template/module/stylesheet © Wikipedia contributors,
