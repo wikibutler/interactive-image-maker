@@ -3,6 +3,20 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.7.1 — 2026-11-20
+
+Provenance, placed where someone new will meet it.
+
+- README: a **Background** section — the template debuted in **Q4 2026**, initiated by **Galder
+  Gonzalez (User:Theklan)**: module and stylesheet written on Basque Wikipedia on 24 October 2026,
+  ported to English Wikipedia on 28 October, and set out for other communities in his Wikimedia-l
+  post the same day.
+- About panel: the same fact in one sentence, in both interface languages.
+
+Dates are read from the first revisions of the template/module pages themselves
+(eu.wp `2026-10-24T12:07Z`, en.wp `2026-10-28T14:58Z`), not from memory — which is also why the
+README says "Q4 2026" rather than naming a single date for both wikis.
+
 ## v1.7.0 — 2026-11-20
 
 Renamed to **Interactive image maker** (repo `interactive-image-maker`): "workbench" made a small

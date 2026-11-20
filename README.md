@@ -49,6 +49,22 @@ Two things trip people up, and both are why this tool exists:
 There is no coordinate picker on the wikis and the template's documentation is a parameter table.
 So: this tool.
 
+## Background
+
+The template and this tool are recent. `{{Interactive image}}` **debuted in Q4 2026**: it was
+initiated by **Galder Gonzalez** ([User:Theklan](https://en.wikipedia.org/wiki/User:Theklan)), who
+wrote the Lua module and the stylesheet on Basque Wikipedia on 24 October 2026 and ported it to
+English Wikipedia four days later. It now runs on articles such as
+[*Voyager 1*](https://en.wikipedia.org/wiki/Voyager_1) and the
+[*Voyager Golden Record*](https://en.wikipedia.org/wiki/Voyager_Golden_Record).
+
+He set out the wider "interactive discovery" work — foldable cladograms, draggable anatomy sliders,
+maps generated from Commons data — in a
+[Wikimedia-l post on 28 October 2026](https://lists.wikimedia.org/hyperkitty/list/wikimedia-l@lists.wikimedia.org/message/HJP6ZIDTGWN3NNUH77UDL2PQNXIFEGR/)
+and offered the templates, modules and gadget code to any community that wanted them. What that
+offer exposed was an authoring gap: the technique is sound, but placing markers by hand in an SVG's
+source is not something most editors will do. Hence this maker.
+
 ## What it does
 
 Four steps, along the top bar.

@@ -863,6 +863,7 @@ function showAbout() {
       <button class="btn close" data-close>${t('btn.close')}</button>
     </div>
     <p>${t('about.intro')}</p>
+    <p>${t('about.origin')}</p>
     <p>${t('about.flow')}</p>
     ${t('about.how')}
     ${t('about.decides', vars)}
