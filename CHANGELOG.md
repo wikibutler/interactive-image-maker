@@ -3,6 +3,24 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.6.0 — 2026-11-20
+
+Making it something other people can use: public repo, Toolforge deployment, and a README written
+for someone who has never heard of the template.
+
+- Repository is **public**.
+- **Toolforge Build Service ready**: `app.py` (standard-library static server reading `PORT`, no
+  directory listings, `/healthz`, per-extension cache headers), `Procfile`
+  (`web: python3 app.py`), `.python-version` (`3.12`), and a comment-only `requirements.txt` so the
+  Python buildpack detects the project. `DEPLOY.md` has the build/start/update commands and the
+  traps (`.python-version` not `runtime.txt`, bind `0.0.0.0:$PORT`, licence requirement).
+- **README rewritten for a newcomer**: what an interactive image is, what the template does, why
+  coordinates and canvases go wrong, a two-minute walkthrough, how to make layers, languages,
+  deep links, then the maintainer details.
+- **Screenshot** at `assets/tool-screenshot.png` (2880×1900, the Voyager sample loaded) and
+  `tools/screenshot.mjs` to regenerate it — it waits for all 16 layers to resolve and for the toast
+  to fade, so the shot never shows a half-loaded canvas.
+
 ## v1.5.0 — 2026-11-19
 
 "`?page=Voyager 1` — but how does it know which wiki?" It didn't, explicitly: it fell back to the

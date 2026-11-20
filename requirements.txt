@@ -1,0 +1,4 @@
+# Interactive image workbench — a static page, nothing to install.
+#
+# This file exists so the Python buildpack detects a Python project. The app uses
+# the standard library only (see app.py); pip installs nothing.

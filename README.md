@@ -1,197 +1,170 @@
 # Interactive image workbench
 
-Authoring tool for `{{Interactive image}}` on English Wikipedia (and its Basque
-original `{{Irudi interaktiboa}}`): place numbered markers on a base image, attach the
-per-region layer files, watch the real template render live, and export wikitext that
-already has the right coordinate units in it.
+A point-and-click editor for the `{{Interactive image}}` template on Wikipedia — the one that lets a
+reader hover a numbered diagram and see each part highlighted, explained, or swapped for a detail
+drawing.
 
-Static app — no server logic, no dependencies, no build step.
+![The workbench with the Voyager 1 spacecraft loaded: 16 numbered markers on the canvas, the region list on the right, and the live preview of the rendered template underneath](assets/tool-screenshot.png)
 
-## Why it exists
+**Try it:** <https://liberal-ste-meter-shareware.trycloudflare.com> — a temporary demo instance; see
+[Deploying](#deploying) to run your own.
 
-The template has no coordinate picker and no authoring documentation. Marker positions
-are written in the base file's own pixel units (`N-x`/`N-y` against
-`original-width`/`original-height`), so reading them out of an SVG's source, by hand, is
-the step where authors place every marker plausibly and wrongly. A wrong unit looks
-exactly like a CSS bug: markers sit off-canvas or drift as the image scales.
+---
 
-So the tool's three load-bearing decisions:
+## First, what is an interactive image?
 
-1. **Units are never percentages.** Coordinates come from clicking the rendered image and
-   are written in `original-width`/`original-height` units, both filled in from the
-   file's natural size.
-2. **Layers are verified against the base canvas.** Every layer's natural size is
-   compared with the base image; a different canvas is flagged, because that layer will
-   appear shifted or scaled when hovered.
-3. **The preview is the template's own CSS.** `template-styles.css` is a verbatim copy of
-   `Template:Interactive image/styles.css` (provenance header + `refresh-template-css.py`),
-   and the preview markup mirrors what `Module:Interactive image` emits — legend rows as
-   preceding siblings of the image wrapper, cards with the same up/right/centre classes,
-   the Commons credit box.
+A normal Wikipedia image is fixed: a picture with a caption, and that is all. If the picture is a
+diagram of a spacecraft, a skeleton, or a map, a reader cannot point at a part and ask "what is
+that?" — the answer has to be written out in prose next to it.
 
-## Layout
+`{{Interactive image}}` changes that. You give the template a base picture plus a numbered marker
+for each region, and for each region a **second picture showing only that part**. A reader who
+hovers marker 4 — or row 4 in the legend — sees that part appear on top of the base image. Nothing
+is clicked, no JavaScript runs, and it works for logged-out readers on any skin.
 
-The app owns the viewport: the page itself does not scroll. Left and right columns scroll on
-their own; the centre is a split of canvas and preview, each with its own scrollbar. The canvas
-is fitted in JS to the stage box (the frame is always exactly the rendered image, so percentage
-marker positions stay correct at any window size), and **hide preview** in the preview bar hands
-the whole column to the canvas. Below 1180 px the page goes back to a normal scrolling document,
-because side-by-side independent panes are hostile on a phone.
+On English Wikipedia it looks like this in wikitext:
 
-## Using it
-
-Two selectors sit at the right of the step bar: **Interface** (the language of this tool) and
-**Target wiki** (which wiki's template dialect the export is written in). They are independent —
-a Basque speaker can write a block for en.wp — and the target follows the interface language
-until you pick one explicitly.
-
-The default view is a four-step guide (top bar): **1 Choose image → 2 Place regions →
-3 Describe them → 4 Export**. Each step shows only the surfaces it needs, the step you are on
-is highlighted, and *Next* refuses to advance without the prerequisite (no image, no regions).
-**Show all panels** switches to the free-form three-panel layout for editing an existing
-project, and **‹ / ›** in step 3 walk region by region.
-
-- **Zoom** — the canvas fits its box by default; `−` / `+` scale it (scrolling inside the canvas
-  when it grows), `fit` returns to fit. The drag bar between canvas and preview resizes the split,
-  and **expand** gives the preview the whole column.
-- **Deep links** — see *URL parameters* below; **Copy link** in the top bar produces one.
-- **Load sample** (empty state and top bar) — opens the *Voyager 1* spacecraft block
-  (16 regions, 16 layers, all already on Commons) so the first thing on screen is a finished,
-  working diagram rather than an empty canvas. The block lives in `demo/voyager-spacecraft.txt`
-  and is loaded through the same import path, so a second sample is just another file plus a
-  line in `loadSample()`.
-- **Commons / Upload / URL** — load a base image. A Commons file name is resolved through
-  `action=query&prop=imageinfo` (thumb URL for display, natural size for units). Loading one
-  advances you to step 2 by itself.
-- **Click the image** to drop a marker, **drag** it, **arrow keys** nudge (Shift = 10 px),
-  **Delete** removes.
-- **Items panel** — name (required; an item without one does not render), badge label,
-  text, layer file, link, raw x/y.
-- **Card mode** (`captions=card`) moves the text into a hover card next to the marker —
-  check the mobile 360 px preview, where the template collapses cards back into the legend.
-- **Export** (step 4) puts the block inline with Copy/Download buttons: aligned, with
-  `original-width`, `original-height`, `resolution` and per-item `N-x`/`N-y` filled in.
-  The same block is also available any time from the top-bar *Export wikitext* button.
-- **Import wikitext** parses an existing block back into the editor — English or Basque
-  parameter names, so an eu.wp `{{Irudi interaktiboa}}` can be inspected or ported.
-- **Save/Load project** (JSON) keeps local uploads inline as data URLs.
-
-## What it deliberately does not do
-
-- No uploads, no wiki writes. File names in the export must already exist on Commons.
-- Wikitext in `N-text` is previewed with a small parser (links, bold, italics, lists);
-  templates, tables and references inside the text are not rendered.
-- Fonts/skin come from the browser, not Vector 2022 — text metrics differ slightly.
-- Not affiliated with or endorsed by the Wikimedia Foundation.
-
-## Running it
-
-```bash
-cd /opt/data/interactive-image-workbench
-python3 -m http.server 8811 --bind 127.0.0.1
-# public demo URL:
-cloudflared tunnel --url http://127.0.0.1:8811 --no-autoupdate --logfile tunnel.log
+```wikitext
+{{Interactive image
+|image = Voyager egitura - oinarria.svg
+|original-width  = 600
+|original-height = 737
+|1-name  = High-gain antenna
+|1-text  = A 3.7 m parabolic dish used to communicate with Earth.
+|1-image = Voyager egitura - antena.svg
+|1-x = 215 |1-y = 338
+}}
 ```
 
-Refresh the copied stylesheet after the template's CSS changes:
+Real examples: [Voyager 1](https://en.wikipedia.org/wiki/Voyager_1) (16 spacecraft parts),
+[Zaldi](https://eu.wikipedia.org/wiki/Zaldi#Eskeletoa) (horse and human skeleton compared).
 
-```bash
-python3 refresh-template-css.py
-```
+Two things trip people up, and both are why this tool exists:
 
-## URL parameters
+- **Coordinates are in the base image's own pixel units**, not percentages. Get the units wrong and
+  every marker sits plausibly but wrongly — which looks like a CSS bug, not a number you mistyped.
+- **Every layer must be the same canvas as the base** — same `viewBox`, same proportions. A layer
+  cut from a differently-sized drawing appears shifted and scaled when hovered.
 
-A link can open the workbench with a template already loaded — useful for sending "look at this
-one" to a colleague, or for a WikiProject page listing examples.
+There is no coordinate picker on the wikis and the template's documentation is a parameter table.
+So: this workbench.
 
-| parameter | what it does |
+## What the workbench does
+
+Four steps, along the top bar.
+
+1. **Choose image** — a Commons file name, an upload, or a URL. The file's own size becomes the
+   coordinate system, so marker positions can never be in the wrong units.
+2. **Place regions** — click the image once per region. Drag to adjust, arrow keys nudge (Shift =
+   10 px). Each click gives a numbered marker and a row in the region list.
+3. **Describe them** — for each region: a name (required), an optional badge label, the text a
+   reader sees, the layer file, a wiki link. The panel walks you through them one at a time.
+4. **Export** — the finished `{{Interactive image}}` block, ready to paste into a sandbox page.
+
+Underneath, the **live preview** renders the real template: it loads the template's own stylesheet,
+builds the same markup the Lua module emits, and lets you hover the markers. If the preview is
+right, the article will be right.
+
+The tool also **checks your work as you go**: a layer whose canvas shape differs from the base, a
+region with no name, a marker outside the picture, a card-mode item with no marker to anchor it.
+Those are the mistakes that are invisible in wikitext and obvious only to a reader.
+
+Nothing is uploaded and no wiki is edited. The export is wikitext for you to paste, and the files
+must already be on Commons.
+
+## Two-minute walkthrough
+
+1. Open the tool and press **Load sample** — it loads the *Voyager 1* spacecraft diagram from
+   English Wikipedia: 16 regions, 16 layer files, all real.
+2. Hover marker 5, then row 5 in the preview. That is the template doing its job.
+3. Press **Export wikitext** and look at what comes out — `original-width` / `original-height` from
+   the file, each region's `N-image`, and `N-x` / `N-y` in file units.
+4. Press **New**, load an image of your own, and do it for real.
+
+## Making your own layers
+
+The hard part is not the wikitext — it is producing the layer images. Use a source whose regions can
+be separated: an SVG, or a layered raster. Take the base drawing, duplicate it once per region,
+delete everything except that region, and export **at the same canvas size every time**. Upload the
+base and the layers to Commons, then place the markers here.
+
+If a layer comes out shifted, its canvas is not identical to the base — the checks panel will say so
+before you export.
+
+## Languages
+
+The workbench writes the dialect of whichever wiki you target: English Wikipedia
+(`{{Interactive image}}`) or Basque Wikipedia (`{{Irudi interaktiboa}}`), where the template and the
+technique originated. Interface language and target wiki are separate settings, so a Basque speaker
+can author for en.wp — and the exported parameter names follow the target, not the interface.
+
+Adding a third wiki means adding one entry to [`i18n.js`](i18n.js) with that wiki's template name and
+parameter names; `node check-i18n.js` fails until the entry is complete.
+
+## Sharing a link to one template
+
+A URL can open the workbench with a template already loaded — useful for "look at this one", or for
+a list of examples on a project page. **Copy link** in the top bar builds it for you.
+
+| URL | What it opens |
 |---|---|
-| `page=en:Voyager 1` | fetch that page's wikitext, extract its first `{{Interactive image}}` block and load it (with all its layers from Commons). Scope it with a wiki prefix — `en:`, `eu:`, or the `enwp:`/`euwp:` aliases — or paste the article URL instead |
-| `wikitext=…` | load a block directly (URL-encoded) |
-| `sample=voyager-spacecraft` | open a bundled sample from `demo/` |
-| `file=Voyager egitura - oinarria.svg` | load just a base image from Commons |
-| `lang=eu` | interface language (`en`, `eu`) |
-| `wiki=eu` | wiki to read the page from, when it is not en.wp |
-| `target=eu` | export dialect, when it must differ from the block's own wiki |
+| `?page=en:Voyager 1` | that article's first `{{Interactive image}}` block, with its layers |
+| `?page=eu:Zaldi` | the same on Basque Wikipedia (`enwp:` / `euwp:` aliases work too) |
+| `?page=https://eu.wikipedia.org/wiki/Zaldi` | a pasted article URL |
+| `?wikitext=…` | a block passed inline, URL-encoded |
+| `?sample=voyager-spacecraft` | the bundled sample |
+| `?lang=eu&target=eu` | Basque interface, Basque parameter names |
 
-A wiki prefix is only honoured when the prefix is a wiki the tool knows (`en`, `eu`), so a bare
-title that legitimately contains a colon — `Star Trek: Voyager`, `Category:Foo`, `File:X.svg` —
-is treated as a title, not as a wiki code. Without a prefix the page is read from the current
-target wiki (en.wp by default); a full `https://<lang>.wikipedia.org/wiki/…` URL carries its own.
+A bare title containing a colon stays a title (`Star Trek: Voyager`, `Category:Foo`) — a prefix only
+counts as a wiki when it is one the tool knows.
 
-Examples: `?page=en:Voyager 1`, `?page=eu:Zaldi`,
-`?lang=eu&sample=voyager-spacecraft&target=eu`. **Copy link** always emits the scoped form, so a
-shared URL says which wiki it means. **Copy link** in the top bar builds the right URL for the
-current state (page-based when the block came from an article, otherwise the wikitext itself).
+## Running it locally
 
-## Languages and targets
-
-Everything language-specific lives in `i18n.js`, in two parallel tables:
-
-- `I18N.ui.<code>` — the workbench's own interface strings (152 keys; `{}` placeholders for
-  counts and names).
-- `I18N.wikis.<code>` — the template *dialect* on that wiki: template name, per-parameter
-  names (`irudia` vs `image`), accepted values (`goian`/`top`, `txartela`/`card`), the module's
-  default note and credit strings, and the doc/styles page titles.
-
-Currently: **en** (English Wikipedia, `{{Interactive image}}`) and **eu** (Basque Wikipedia,
-`{{Irudi interaktiboa}}`). Interface and target are separate, so the tool can write one wiki's
-dialect in the other's interface language.
-
-What follows from the dialect, automatically:
-
-- the emitted wikitext — template name, every parameter name, and the `side/top`,
-  `legend/card` values;
-- the field labels in the editor (`N-izena`, `N-etiketua`, … when the target is eu.wp);
-- the default note and credit link text in the preview;
-- the wiki the `[[links]]` in region text point at;
-- the footer/documentation links.
-
-### Adding a language
-
-1. Copy the `en` block in `I18N.ui` to `I18N.ui.<code>`, translate the values, add the code to
-   `I18N.languages` and set `langName`.
-2. Copy `I18N.wikis.en` to `I18N.wikis.<code>` and change `template`, `module`, `stylesPage`,
-   `docPage`, `category`, `articleBase`, the two `params` maps, `item`, `values` and `defaults`
-   to what the module on that wiki actually reads.
-3. Run `node check-i18n.js` — it fails if any key or dialect field is missing, so a half-finished
-   translation cannot ship silently.
-
-A wiki can be added without a UI translation (the interface falls back to English): that is the
-normal case when a community translates the template but not this tool.
-
-## Version control
-
-This directory is a git repository: one commit per behaviour change, so any revision can be
-revisited.
+No build step and no dependencies:
 
 ```bash
-git log --oneline          # the sequence of revisions
-git tag                    # milestones (v1.0.0 = the guided workbench)
-git checkout v1.0.0        # show that version …
-git switch main            # … and come back
+python3 app.py                 # http://127.0.0.1:8811
 ```
 
-Because the tunnel points at this directory, `git checkout` also changes what the public demo
-serves. That is handy for comparing two builds at one URL and a trap if you leave the repo on an
-old revision — `git switch main` restores it.
+Any static server would do — the app is `index.html`, `app.css`, `app.js`, `i18n.js` and the copied
+stylesheet. `app.py` adds correct MIME types, disables directory listings and serves `/healthz`.
 
-Conventions: message says what changed and why; tag milestones `vX.Y.Z` and add a `CHANGELOG.md`
-entry; `tunnel.log` and saved projects stay untracked.
+## Deploying
 
-## Files
+The repository is ready for **Wikimedia Toolforge** and its Build Service: a small standard-library
+file server plus a `Procfile`, no dependencies at build time. Commands, the update cycle and the
+traps: **[DEPLOY.md](DEPLOY.md)**.
 
-| file | job |
+## Repository layout
+
+| Path | What it is |
 |---|---|
-| `index.html` | the whole UI shell |
-| `app.js` | state, canvas interaction, preview builder, wikitext export/import |
-| `app.css` | workbench chrome (not the template's CSS) |
-| `template-styles.css` | verbatim copy of the template's TemplateStyles sheet — the preview's only styling |
-| `refresh-template-css.py` | re-pull that sheet, with revision timestamp in the header |
-| `demo/voyager-spacecraft.txt` | real `{{Interactive image}}` block from en.wp *Voyager 1*, used by **Load sample** |
+| `index.html`, `app.css` | the shell |
+| `app.js` | canvas, checks, preview, wikitext in and out |
 | `i18n.js` | interface strings per language + template dialects per wiki |
-| `check-i18n.js` | `node check-i18n.js` — fails if a language or dialect is incomplete |
+| `template-styles.css` | verbatim copy of `Template:Interactive image/styles.css` — what the preview renders with |
+| `demo/voyager-spacecraft.txt` | the sample block, fetched from en.wp |
+| `app.py`, `Procfile`, `.python-version`, `requirements.txt` | Toolforge deployment |
+| `check-i18n.js` | `node check-i18n.js` — fails when a language or dialect is incomplete |
+| `refresh-template-css.py` | re-pull the stylesheet, with its revision timestamp |
+| `tools/screenshot.mjs` | regenerates the screenshot above |
 
-Provenance: built by Hermes Agent for Andrew Lih, November 2026, while auditing
-`{{Interactive image}}` on en.wp. Template/module/stylesheet © Wikipedia contributors,
-CC BY-SA 4.0.
+## Development notes
+
+- One commit per behaviour change; milestones are tagged `v1.0.0` … and listed in
+  [CHANGELOG.md](CHANGELOG.md). Any revision can be revisited with `git checkout <tag>`.
+- `node check-i18n.js` is the only test that needs to pass for a language change; the app has no
+  other test suite.
+- The preview's styling is a copy, not a live fetch: run `python3 refresh-template-css.py` when the
+  template's CSS changes, and regenerate the screenshot with
+  `node tools/screenshot.mjs` (needs Playwright).
+
+## Licence and provenance
+
+The workbench is MIT-licensed ([LICENSE](LICENSE)). `template-styles.css` is a verbatim copy of a
+Wikipedia page and remains **CC BY-SA 4.0**, © Wikipedia contributors — see
+[NOTICE.md](NOTICE.md). Image files are never redistributed: the app resolves them from Commons at
+runtime.
+
+Built by Andrew Lih with Hermes Agent, November 2026, while auditing `{{Interactive image}}` on
+English Wikipedia. Not affiliated with or endorsed by the Wikimedia Foundation.
