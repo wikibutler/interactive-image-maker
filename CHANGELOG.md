@@ -3,6 +3,24 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.7.2 — 2026-11-20
+
+Deployed, and the docs now say so.
+
+- Build Service build succeeded on the first attempt (`heroku/python` + `heroku/procfile`
+  buildpacks, `Status: ok`, image `tool-interactive-image-maker:latest@sha256:83e7847f…`), and
+  `webservice buildservice start --mount=none -m 512Mi` brought it up at
+  <https://interactive-image-maker.toolforge.org>.
+- Verified from outside, not from the build log: `/` 200 with
+  `server: interactive-image-maker/1.0 Python/3.12.16`, `/healthz` → `ok`, every asset 200, and in a
+  browser the Voyager sample resolved all 16 layers through the Commons API and
+  `?page=en:Voyager 1` loaded from en.wikipedia — the cross-origin calls work from `toolforge.org`,
+  which is the one thing a local test could not have proved.
+- `README`: **Try it** now points at the Toolforge instance instead of the temporary tunnel, and the
+  deploy section says where it runs.
+- `DEPLOY.md`: the real tool name everywhere (`interactive-image-maker`), a status header, and a
+  short "what success looks like" block with the digest and the 503-on-cold-start note.
+
 ## v1.7.1 — 2026-11-20
 
 Provenance, placed where someone new will meet it.

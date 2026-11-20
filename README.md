@@ -6,8 +6,8 @@ drawing.
 
 ![The tool with the Voyager 1 spacecraft loaded: 16 numbered markers on the canvas, the region list on the right, and the live preview of the rendered template underneath](assets/tool-screenshot.png)
 
-**Try it:** <https://liberal-ste-meter-shareware.trycloudflare.com> — a temporary demo instance; see
-[Deploying](#deploying) to run your own.
+**Try it:** <https://interactive-image-maker.toolforge.org> — running on Wikimedia Toolforge, built
+from this repository. (To run your own copy, see [Deploying](#deploying).)
 
 ---
 
@@ -147,9 +147,10 @@ stylesheet. `app.py` adds correct MIME types, disables directory listings and se
 
 ## Deploying
 
-The repository is ready for **Wikimedia Toolforge** and its Build Service: a small standard-library
-file server plus a `Procfile`, no dependencies at build time. Commands, the update cycle and the
-traps: **[DEPLOY.md](DEPLOY.md)**.
+It runs on **Wikimedia Toolforge**, built by its Build Service from this repository: a small
+standard-library file server plus a `Procfile`, with no dependencies at build time. The deployment
+is `interactive-image-maker.toolforge.org`; commands, the update cycle and the traps are in
+**[DEPLOY.md](DEPLOY.md)**.
 
 ## Repository layout
 

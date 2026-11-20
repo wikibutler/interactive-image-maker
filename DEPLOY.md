@@ -1,5 +1,9 @@
 # Deploying on Toolforge (Build Service)
 
+**Status: deployed.** The tool is live at <https://interactive-image-maker.toolforge.org>, built from
+`https://github.com/wikibutler/interactive-image-maker`. This document is the reproducible path to
+that state.
+
 The tool is a static page, so the container only runs a small standard-library
 file server (`app.py`). Nothing is installed at build time, there is no database and
 no credentials, and the build takes about a minute.
@@ -10,9 +14,9 @@ project) and `.python-version` are already in the repository. The repository mus
 
 ## One-time setup
 
-1. Create the tool at <https://toolsadmin.wikimedia.org/tools/create>. Suggested name:
-   `ii-maker` (the URL becomes `https://ii-maker.toolforge.org`). Tool names are
-   lowercase letters, digits and hyphens.
+1. Create the tool at <https://toolsadmin.wikimedia.org/tools/create>. This one is
+   `interactive-image-maker` (the URL becomes `https://interactive-image-maker.toolforge.org`). Tool
+   names are lowercase letters, digits and hyphens.
 2. Give the maintainers Toolforge accounts with access to the tool.
 3. Nothing else: no `toolforge envvars`, no NFS layout, no virtualenv.
 
@@ -20,7 +24,7 @@ project) and `.python-version` are already in the repository. The repository mus
 
 ```bash
 ssh <your-shell-username>@login.toolforge.org
-become ii-maker
+become interactive-image-maker
 
 # build the image straight from the public repository
 toolforge build start https://github.com/wikibutler/interactive-image-maker
@@ -35,11 +39,26 @@ toolforge webservice buildservice start --mount=none -m 512Mi
 `--mount=none` is deliberate: the app reads nothing from NFS. 512 Mi is generous for a
 file server; the default 512 Mi is fine, `1Gi` unnecessary.
 
+### What success looks like
+
+`toolforge build show` ends with `Status: ok` and a digest, and the export step names the image:
+
+```
+Saving tools-harbor.wmcloud.org/tool-interactive-image-maker/tool-interactive-image-maker:latest...
+*** Images (sha256:83e7847f…):
+Status: ok
+```
+
+`webservice buildservice start` prints `Starting webservice…` and then goes quiet. The first request
+can return 503 for up to a minute while the pod comes up — that is normal, not a broken build.
+The response header `server: interactive-image-maker/1.0 Python/3.12` is proof the image is the one
+you think it is.
+
 Check it:
 
 ```bash
-curl -s https://ii-maker.toolforge.org/healthz        # → ok
-curl -s -o /dev/null -w '%{http_code}\n' https://ii-maker.toolforge.org/
+curl -s https://interactive-image-maker.toolforge.org/healthz        # → ok
+curl -s -o /dev/null -w '%{http_code}\n' https://interactive-image-maker.toolforge.org/
 toolforge webservice buildservice status
 ```
 
@@ -47,7 +66,7 @@ toolforge webservice buildservice status
 
 ```bash
 git push origin main                     # from your machine
-become ii-maker
+become interactive-image-maker
 toolforge build start https://github.com/wikibutler/interactive-image-maker
 toolforge build show                     # wait for ok (Succeeded)
 toolforge webservice buildservice restart
@@ -70,7 +89,7 @@ immediately; CSS/JS carry a 5-minute cache.
 - **Licence.** Toolforge requires an OSI-approved licence for tool code — see `LICENSE`
   (MIT). The copied `template-styles.css` is CC BY-SA 4.0 and is declared in `NOTICE.md`.
 - **Logs:** `toolforge webservice buildservice logs` (or `kubectl logs -f
-  deployment/ii-maker`) show the request log; `X-Content-Type-Options` and
+  deployment/interactive-image-maker`) show the request log; `X-Content-Type-Options` and
   `Cache-Control` are set per request in `app.py`.
 
 ## Running the same thing locally
