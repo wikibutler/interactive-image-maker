@@ -92,12 +92,18 @@ try {
   check(src.page === 'Voyager 1' && src.wiki === 'en', '?page=en:Voyager 1 loads that article', JSON.stringify(src));
 
   /* ------------------------------------------------------------------------ zooming */
-  await waitFor(() => window.__app.S.items.length > 0);
+  // the canvas is fitted only once the base image has decoded; in CI that lands after
+  // the item list, and zooming a not-yet-fitted frame is a no-op
+  await waitFor(() => {
+    const img = document.getElementById('baseImg');
+    return window.__app.S.items.length > 0 && img && img.naturalWidth > 0 &&
+      !!document.getElementById('frame').style.maxWidth;
+  });
   const before = await page.evaluate(() => document.getElementById('frame').getBoundingClientRect().width);
   await page.click('#zoomIn');
   await page.waitForTimeout(300);
   const zoomed = await page.evaluate(() => document.getElementById('frame').getBoundingClientRect().width);
-  check(zoomed > before, 'canvas zoom in enlarges the frame', `${Math.round(before)} → ${Math.round(zoomed)}`);
+  check(zoomed > before + 5, 'canvas zoom in enlarges the frame', `${Math.round(before)} → ${Math.round(zoomed)}`);
   await page.click('#zoomFit');
   await page.waitForTimeout(300);
   const fitted = await page.evaluate(() => document.getElementById('frame').getBoundingClientRect().width);
