@@ -20,6 +20,18 @@ project) and `.python-version` are already in the repository. The repository mus
 2. Give the maintainers Toolforge accounts with access to the tool.
 3. Nothing else: no `toolforge envvars`, no NFS layout, no virtualenv.
 
+## Before you build
+
+CI runs the suite on every push; locally:
+
+```bash
+npm run check     # static, seconds
+npm test          # browser, needs network (live Commons API)
+```
+
+A build from a red commit bakes the bug into the image — the v1.7.2 deploy shipped a dead
+**Load sample** button that way.
+
 ## First deploy
 
 ```bash

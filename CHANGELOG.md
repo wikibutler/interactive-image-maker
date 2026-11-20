@@ -3,6 +3,26 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.7.4 — 2026-11-20
+
+Tests that run before a deploy, aimed at the bug class that reached production.
+
+- **`tools/check-dom.mjs`** (static, no browser, <1s): every element id `app.js` touches must exist
+  (in `index.html` or in markup the app builds); every `data-i18n` / `t('…')` key must exist in every
+  language; and **no `addEventListener` may register a bare function that declares parameters** —
+  the exact shape of the `Load sample` bug. Verified by reintroducing the bug: it fails with
+  `addEventListener('click', loadSample) passes the event object into loadSample(file)`.
+- **`tools/e2e.mjs`** (Playwright, real `app.py` server on a free port): Load sample by clicking,
+  16 regions + 16 layer files from the live Commons API, preview markers, export shape, eu dialect
+  switch, export→import→export byte-identical, `?page=` deep link, canvas zoom, interface language
+  switch, and zero page errors. 13 checks, all passing.
+- **`tools/test-server.mjs`** starts and stops the server around the suite, so `npm test` is one
+  command; `npm run check` is the fast half.
+- **GitHub Actions** (`.github/workflows/test.yml`) runs both on every push and PR.
+- The app now reports **unhandled promise rejections** as a toast instead of failing silently —
+  the reason the original bug was invisible in the UI.
+- `tools/smoke.mjs` folded into `e2e.mjs`; screenshots share the same launcher.
+
 ## v1.7.3 — 2026-11-20
 
 Fixed: **Load sample did nothing on the deployed site** — reported right after the Toolforge deploy,

@@ -1,0 +1,16 @@
+{
+  "name": "interactive-image-maker",
+  "version": "1.7.4",
+  "private": true,
+  "description": "Authoring tool for {{Interactive image}} on Wikipedia: marker picker, layer-canvas checks, live TemplateStyles preview, wikitext export for en.wp and eu.wp",
+  "license": "MIT",
+  "scripts": {
+    "check": "node check-i18n.js && node tools/check-dom.mjs",
+    "test": "node tools/test-server.mjs",
+    "e2e": "node tools/e2e.mjs",
+    "screenshot": "node tools/screenshot.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

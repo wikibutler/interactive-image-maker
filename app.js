@@ -1343,6 +1343,13 @@ function addItem(x, y) {
 
 /* ------------------------------------------------------------------ boot */
 function boot() {
+  // a rejected promise inside an async handler used to fail silently (the "Load sample"
+  // bug); make it visible to the user and to the console
+  window.addEventListener('unhandledrejection', (e) => {
+    const msg = (e.reason && e.reason.message) ? e.reason.message : String(e.reason || '');
+    console.error('unhandled rejection:', e.reason);
+    toast(t('toast.crash', { msg }));
+  });
   // interface language: saved choice, else the browser's language if we ship it
   try {
     const savedLang = localStorage.getItem(LS_LANG);

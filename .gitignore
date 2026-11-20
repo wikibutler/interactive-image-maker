@@ -1,3 +1,6 @@
+# node (test tooling only — the app itself needs none)
+node_modules/
+
 # runtime droppings
 tunnel.log
 *.log

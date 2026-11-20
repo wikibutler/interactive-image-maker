@@ -166,13 +166,35 @@ is `interactive-image-maker.toolforge.org`; commands, the update cycle and the t
 | `refresh-template-css.py` | re-pull the stylesheet, with its revision timestamp |
 | `tools/screenshot.mjs` | regenerates the screenshot above |
 
+## Tests
+
+```bash
+npm run check     # static: translations, ids, listener signatures — under a second
+npm test          # end-to-end: real server, real browser, real Commons API
+```
+
+`npm run check` is the fast half. It fails if a language is missing a key, if `app.js` touches an
+element id the HTML never defines, if a translation key used in markup or code is undefined, or if
+a click listener is registered with a *bare function that takes arguments* — that last rule exists
+because one was, and the button it drove died silently (the handler received the `MouseEvent` as
+its first parameter). `tools/check-dom.mjs` names the exact line.
+
+`npm test` starts `app.py` on a free port and drives Chromium: **Load sample** by clicking, 16
+regions and 16 layer files resolved from Commons, the preview's 16 markers, the export shape, the
+Basque dialect switch, an export → import → export byte-identical round-trip, a `?page=` deep link,
+canvas zoom, and the interface language switch — failing on any page error. It needs network access,
+because it talks to the live Commons API rather than a fixture.
+
+Both run in GitHub Actions on every push and pull request (`.github/workflows/test.yml`), so the
+Toolforge build only ever sees a rev that passed.
+
 ## Development notes
 
 - One commit per behaviour change; milestones are tagged `v1.0.0` … and listed in
   [CHANGELOG.md](CHANGELOG.md). Any revision can be revisited with `git checkout <tag>`.
-- `node check-i18n.js` gates language changes; `node tools/smoke.mjs [url]` clicks **Load sample**
-  and checks the whole happy path (16 regions, 16 layers, preview, export, one deep link). Run it
-  against a deployment after every rebuild — the button path is where a regression once hid.
+- `npm test` covers the button paths a person takes; run it against a deployment after every rebuild
+  (`node tools/e2e.mjs https://interactive-image-maker.toolforge.org/`) — the load path is where a
+  regression once hid, and it is invisible to API-level tests.
 - The preview's styling is a copy, not a live fetch: run `python3 refresh-template-css.py` when the
   template's CSS changes, and regenerate the screenshot with
   `node tools/screenshot.mjs` (needs Playwright).
