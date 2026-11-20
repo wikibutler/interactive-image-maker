@@ -170,8 +170,9 @@ is `interactive-image-maker.toolforge.org`; commands, the update cycle and the t
 
 - One commit per behaviour change; milestones are tagged `v1.0.0` … and listed in
   [CHANGELOG.md](CHANGELOG.md). Any revision can be revisited with `git checkout <tag>`.
-- `node check-i18n.js` is the only test that needs to pass for a language change; the app has no
-  other test suite.
+- `node check-i18n.js` gates language changes; `node tools/smoke.mjs [url]` clicks **Load sample**
+  and checks the whole happy path (16 regions, 16 layers, preview, export, one deep link). Run it
+  against a deployment after every rebuild — the button path is where a regression once hid.
 - The preview's styling is a copy, not a live fetch: run `python3 refresh-template-css.py` when the
   template's CSS changes, and regenerate the screenshot with
   `node tools/screenshot.mjs` (needs Playwright).

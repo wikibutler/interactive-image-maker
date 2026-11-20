@@ -3,6 +3,26 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.7.3 — 2026-11-20
+
+Fixed: **Load sample did nothing on the deployed site** — reported right after the Toolforge deploy,
+and it was not a deployment problem.
+
+- **Cause**, a regression from v1.4.0: `loadSample()` gained an optional file name for
+  `?sample=…`, but the two buttons stayed wired as `addEventListener('click', loadSample)`. The
+  click event arrived as `file`, `file.indexOf('/')` threw *outside* the try/catch, and the promise
+  rejected silently — no toast, no markers, no console message a user would notice.
+- It looked Toolforge-specific because the tunnel ran `python3 -m http.server`, which sends no cache
+  headers, so the browser was still executing the pre-v1.4 bundle where the button worked; Toolforge
+  served the current bytes. `?sample=` kept working on both, which is why the difference looked like
+  an environment quirk.
+- Both listeners are now wrapped (`() => loadSample()`), and the function ignores any argument that
+  is not a string.
+- Added **`tools/smoke.mjs`**: clicks the button, waits for 16 regions and 16 layer files, checks the
+  preview, the export and one page deep link. Against the deployed build it reproduces the failure
+  (`TypeError: file.indexOf is not a function`); locally all eight checks pass. Anything reachable
+  only from a button belongs in there — this bug was invisible to every API-level test.
+
 ## v1.7.2 — 2026-11-20
 
 Deployed, and the docs now say so.

@@ -843,6 +843,8 @@ async function applyBlock(text, opts) {
 const SAMPLE_FILE = 'demo/voyager-spacecraft.txt';
 
 async function loadSample(file) {
+  // called from a click handler and from ?sample=; anything but a string means "the default"
+  if (typeof file !== 'string' || !file.trim()) file = '';
   const path = !file ? SAMPLE_FILE : (file.indexOf('/') >= 0 ? file : 'demo/' + file + '.txt');
   if ((S.items.length || S.base.src) && !confirm(t('toast.sampleConfirm'))) return;
   try {
@@ -1294,8 +1296,8 @@ function wire() {
   $('btnDownloadInline').addEventListener('click', () => downloadText(exportText()));
   $('btnExport').addEventListener('click', showExport);
   $('btnImport').addEventListener('click', showImport);
-  $('btnSample').addEventListener('click', loadSample);
-  $('btnSampleEmpty').addEventListener('click', loadSample);
+  $('btnSample').addEventListener('click', () => loadSample());
+  $('btnSampleEmpty').addEventListener('click', () => loadSample());
   $('btnAbout').addEventListener('click', showAbout);
   $('btnSave').addEventListener('click', saveProject);
   $('btnLink').addEventListener('click', () => copyText(deepLink(), 'toast.linkCopied'));
