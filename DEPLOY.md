@@ -1,6 +1,6 @@
 # Deploying on Toolforge (Build Service)
 
-The workbench is a static page, so the container only runs a small standard-library
+The tool is a static page, so the container only runs a small standard-library
 file server (`app.py`). Nothing is installed at build time, there is no database and
 no credentials, and the build takes about a minute.
 
@@ -11,7 +11,7 @@ project) and `.python-version` are already in the repository. The repository mus
 ## One-time setup
 
 1. Create the tool at <https://toolsadmin.wikimedia.org/tools/create>. Suggested name:
-   `ii-workbench` (the URL becomes `https://ii-workbench.toolforge.org`). Tool names are
+   `ii-maker` (the URL becomes `https://ii-maker.toolforge.org`). Tool names are
    lowercase letters, digits and hyphens.
 2. Give the maintainers Toolforge accounts with access to the tool.
 3. Nothing else: no `toolforge envvars`, no NFS layout, no virtualenv.
@@ -20,10 +20,10 @@ project) and `.python-version` are already in the repository. The repository mus
 
 ```bash
 ssh <your-shell-username>@login.toolforge.org
-become ii-workbench
+become ii-maker
 
 # build the image straight from the public repository
-toolforge build start https://github.com/wikibutler/interactive-image-workbench
+toolforge build start https://github.com/wikibutler/interactive-image-maker
 
 # wait for "ok (Succeeded)"
 toolforge build show
@@ -38,8 +38,8 @@ file server; the default 512 Mi is fine, `1Gi` unnecessary.
 Check it:
 
 ```bash
-curl -s https://ii-workbench.toolforge.org/healthz        # → ok
-curl -s -o /dev/null -w '%{http_code}\n' https://ii-workbench.toolforge.org/
+curl -s https://ii-maker.toolforge.org/healthz        # → ok
+curl -s -o /dev/null -w '%{http_code}\n' https://ii-maker.toolforge.org/
 toolforge webservice buildservice status
 ```
 
@@ -47,8 +47,8 @@ toolforge webservice buildservice status
 
 ```bash
 git push origin main                     # from your machine
-become ii-workbench
-toolforge build start https://github.com/wikibutler/interactive-image-workbench
+become ii-maker
+toolforge build start https://github.com/wikibutler/interactive-image-maker
 toolforge build show                     # wait for ok (Succeeded)
 toolforge webservice buildservice restart
 ```
@@ -70,7 +70,7 @@ immediately; CSS/JS carry a 5-minute cache.
 - **Licence.** Toolforge requires an OSI-approved licence for tool code — see `LICENSE`
   (MIT). The copied `template-styles.css` is CC BY-SA 4.0 and is declared in `NOTICE.md`.
 - **Logs:** `toolforge webservice buildservice logs` (or `kubectl logs -f
-  deployment/ii-workbench`) show the request log; `X-Content-Type-Options` and
+  deployment/ii-maker`) show the request log; `X-Content-Type-Options` and
   `Cache-Control` are set per request in `app.py`.
 
 ## Running the same thing locally

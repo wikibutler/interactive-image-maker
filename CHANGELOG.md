@@ -3,6 +3,22 @@
 Dates are UTC. The project is a static app — every commit is a working tree that can be served
 as-is, so any version can be revisited with `git checkout <sha>`.
 
+## v1.7.0 — 2026-11-20
+
+Renamed to **Interactive image maker** (repo `interactive-image-maker`): "workbench" made a small
+single-purpose tool sound like a suite.
+
+- GitHub repo renamed; the old URL redirects to the new one.
+- New name in the README title, the browser title, the in-app heading, the About panel and the
+  Toolforge examples (`ii-maker`). The interface string is translated too — eu:
+  *Irudi interaktiboen sortzailea*.
+- Prose that said "the workbench" now says "the tool"; the clear-everything confirmation now reads
+  "Clear the canvas?".
+- Screenshot regenerated so the header in the README matches the shipped name.
+- The local checkout path is unchanged; `/opt/data/interactive-image-maker` is a symlink to it.
+- Internal CSS class `.workbench` and the repo's file layout are untouched — no user-visible
+  behaviour changed.
+
 ## v1.6.0 — 2026-11-20
 
 Making it something other people can use: public repo, Toolforge deployment, and a README written

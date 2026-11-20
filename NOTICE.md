@@ -10,13 +10,13 @@ from English Wikipedia (revision of 2026-11-18), which is the stylesheet that ma
 - © Wikipedia contributors
 - Licensed **CC BY-SA 4.0** — https://creativecommons.org/licenses/by-sa/4.0/
 - **Not** covered by the repository's MIT licence (`LICENSE`).
-- It is loaded into the preview iframe unchanged; the workbench never edits it. Re-fetch a newer
+- It is loaded into the preview iframe unchanged; the tool never edits it. Re-fetch a newer
   revision with `python3 refresh-template-css.py`, which rewrites the provenance header with the
   captured revision timestamp.
 
 ## Wikimedia content fetched at runtime
 
-The workbench resolves Commons file names through the Commons API
+The tool resolves Commons file names through the Commons API
 (`action=query&prop=imageinfo`) and displays thumbnails from `upload.wikimedia.org`. Nothing is
 downloaded into the repository, re-hosted, or redistributed — the app only points at Commons, and
 the wikitext it emits contains file names whose attribution lives on the file description pages.

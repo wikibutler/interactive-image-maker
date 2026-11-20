@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static file server for the Interactive image workbench.
+"""Static file server for the Interactive image maker.
 
 The app is a single page with no server-side logic, so this only has to serve the
 repository read-only with correct MIME types, no directory listings, and a health
@@ -30,7 +30,7 @@ CACHE = {
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "ii-workbench/1.0"
+    server_version = "interactive-image-maker/1.0"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=ROOT, **kwargs)

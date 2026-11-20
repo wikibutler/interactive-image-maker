@@ -1,7 +1,7 @@
-/* Interactive image workbench — interface strings and template dialects.
+/* Interactive image maker — interface strings and template dialects.
  *
  * Adding a language takes two entries:
- *   I18N.ui.<code>    — the workbench's own interface strings
+ *   I18N.ui.<code>    — the tool's own interface strings
  *   I18N.wikis.<code> — the template dialect on that wiki (template name, parameter
  *                       names, accepted values, defaults, doc/styles pages)
  * A wiki can exist without a UI translation (the interface falls back to English),
@@ -17,7 +17,7 @@ window.I18N = {
   ui: {
     en: {
       langName: 'English',
-      'app.title': 'Interactive image workbench',
+      'app.title': 'Interactive image maker',
       'app.idle': 'No image loaded',
       'app.status': '{name} · {w}×{h}px · {n} item(s)',
       'open.title': 'Open from a wiki page',
@@ -164,22 +164,22 @@ window.I18N = {
       'toast.badImage': 'Could not read that image',
       'toast.needUrl': 'Paste an image URL',
       'toast.badUrl': 'Could not load that URL',
-      'toast.newConfirm': 'Clear the workbench? Unsaved work is lost.',
+      'toast.newConfirm': 'Clear the canvas? Unsaved work is lost.',
       'toast.projectFail': 'Project: {msg}',
       'toast.localImage': 'Local image {w}×{h} — upload it to Commons before exporting',
 
-      'about.title': 'About this workbench',
+      'about.title': 'About this tool',
       'about.intro': 'Authoring tool for <a href="https://en.wikipedia.org/wiki/Template:Interactive_image" target="_blank" rel="noopener">{{Interactive image}}</a>, the pure-CSS marker + hover-layer template ported to English Wikipedia from Basque Wikipedia\'s <a href="https://eu.wikipedia.org/wiki/Txantiloi:Irudi_interaktiboa" target="_blank" rel="noopener">{{Irudi interaktiboa}}</a>.',
       'about.flow': 'The default view is a four-step guide — choose image, place regions, describe them, export. <strong>Show all panels</strong> switches to the free-form three-panel layout, which is what you want when editing an existing project.',
       'about.how': '<h3 style="font-size:14px;margin-top:14px">How the rendering works</h3><ul><li><code>Module:Interactive image</code> (Lua) emits the markup; the template\'s TemplateStyles sheet does all the interaction.</li><li>Legend rows are emitted <em>before</em> the image wrapper so one general-sibling rule can reveal a layer: <code>.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-geruza-5{opacity:1}</code>.</li><li>No JavaScript, no gadget, and no <code>:has()</code> (TemplateStyles\' sanitiser refuses it) — hence the 24-item cap and hand-unrolled rules.</li></ul>',
-      'about.decides': '<h3 style="font-size:14px;margin-top:14px">What this tool decides for you</h3><ul><li><strong>Units.</strong> Coordinates are written in the base file\'s own pixel size, with <code>{ow}</code>/<code>{oh}</code> filled in from the image. Percentages are never emitted — they silently misplace markers.</li><li><strong>Dialect.</strong> The export speaks the target wiki\'s parameter names ({example}), so the same workbench writes for en.wp and eu.wp.</li><li><strong>Card placement.</strong> Cards flip above the marker past 55% height and left past 65% width, matching the module.</li><li><strong>Geometry check.</strong> Every layer\'s natural size is compared with the base; a different canvas is flagged.</li></ul>',
+      'about.decides': '<h3 style="font-size:14px;margin-top:14px">What this tool decides for you</h3><ul><li><strong>Units.</strong> Coordinates are written in the base file\'s own pixel size, with <code>{ow}</code>/<code>{oh}</code> filled in from the image. Percentages are never emitted — they silently misplace markers.</li><li><strong>Dialect.</strong> The export speaks the target wiki\'s parameter names ({example}), so the same tool writes for en.wp and eu.wp.</li><li><strong>Card placement.</strong> Cards flip above the marker past 55% height and left past 65% width, matching the module.</li><li><strong>Geometry check.</strong> Every layer\'s natural size is compared with the base; a different canvas is flagged.</li></ul>',
       'about.not': '<h3 style="font-size:14px;margin-top:14px">What it does not do</h3><ul><li>It uploads nothing. File names in the export must already exist on Commons.</li><li>Wikitext in the text field is previewed with a small parser (links, bold, italics, lists). Templates, tables and references inside it are not rendered.</li><li>Fonts and skin come from your browser, not Vector 2022 — text metrics differ slightly.</li><li>Hover is the only trigger in the template itself — check the mobile preview, where cards collapse into legend text.</li><li>Not affiliated with or endorsed by the Wikimedia Foundation.</li></ul>',
       'about.footer': 'Preview CSS is copied verbatim from the template\'s TemplateStyles page (CC BY-SA 4.0, Wikipedia contributors) by <code>refresh-template-css.py</code>.'
     },
 
     eu: {
       langName: 'Euskara',
-      'app.title': 'Irudi interaktiboen tailerra',
+      'app.title': 'Irudi interaktiboen sortzailea',
       'app.idle': 'Ez dago irudirik kargatuta',
       'app.status': '{name} · {w}×{h} px · {n} elementu',
       'open.title': 'Ireki wiki-orri batetik',
@@ -326,11 +326,11 @@ window.I18N = {
       'toast.badImage': 'Ezin izan da irudi hori irakurri',
       'toast.needUrl': 'Itsatsi irudi baten URLa',
       'toast.badUrl': 'Ezin izan da URL hori kargatu',
-      'toast.newConfirm': 'Garbitu tailerra? Gorde gabeko lana galduko da.',
+      'toast.newConfirm': 'Garbitu mihisa? Gorde gabeko lana galduko da.',
       'toast.projectFail': 'Proiektua: {msg}',
       'toast.localImage': '{w}×{h} irudi lokala — igo Commonsera esportatu aurretik',
 
-      'about.title': 'Tailer honi buruz',
+      'about.title': 'Tresna honi buruz',
       'about.intro': '<a href="https://eu.wikipedia.org/wiki/Txantiloi:Irudi_interaktiboa" target="_blank" rel="noopener">{{Irudi interaktiboa}}</a> txantiloiaren egile-tresna: CSS hutsezko markak eta saguaren gaineko geruzak. Euskarazko jatorrizkoa ingelesera eraman zen <a href="https://en.wikipedia.org/wiki/Template:Interactive_image" target="_blank" rel="noopener">{{Interactive image}}</a> gisa.',
       'about.flow': 'Lehenetsitako ikuspegia lau urratseko gida da — aukeratu irudia, kokatu eremuak, deskribatu, esportatu. <strong>Erakutsi panel guztiak</strong> aukerak hiru paneleko antolamendua erakusten du, lehendik dagoen proiektu bat editatzeko egokia.',
       'about.how': '<h3 style="font-size:14px;margin-top:14px">Nola funtzionatzen duen marrazteak</h3><ul><li><code>Modulu:Irudi interaktiboa</code> (Lua) arduratzen da markaz; txantiloiaren TemplateStyles orriak egiten du elkarreragin osoa.</li><li>Legendako errenkadak irudiaren bilgarriaren <em>aurretik</em> sortzen dira, eta anaia-hautatzaile bakar batek erakusten du geruza: <code>.irudi-int-elementua.irudi-int-5:hover ~ .irudi-int-irudia .irudi-int-geruza-5{opacity:1}</code>.</li><li>Ez dago JavaScriptik, ez gadgetik, eta ez <code>:has()</code> (TemplateStylesen garbitzaileak ez du onartzen) — horregatik 24 elementuko muga eta eskuz idatzitako arauak.</li></ul>',

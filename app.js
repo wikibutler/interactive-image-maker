@@ -1,4 +1,4 @@
-/* Interactive image workbench — authoring tool for {{Interactive image}} (en.wp / eu.wp)
+/* Interactive image maker — authoring tool for {{Interactive image}} (en.wp / eu.wp)
  * Vanilla JS, no build step. Emits wikitext; renders a faithful preview using the
  * template's own TemplateStyles CSS (template-styles.css, fetched from en.wp).
  */

@@ -1,10 +1,10 @@
-# Interactive image workbench
+# Interactive image maker
 
 A point-and-click editor for the `{{Interactive image}}` template on Wikipedia — the one that lets a
 reader hover a numbered diagram and see each part highlighted, explained, or swapped for a detail
 drawing.
 
-![The workbench with the Voyager 1 spacecraft loaded: 16 numbered markers on the canvas, the region list on the right, and the live preview of the rendered template underneath](assets/tool-screenshot.png)
+![The tool with the Voyager 1 spacecraft loaded: 16 numbered markers on the canvas, the region list on the right, and the live preview of the rendered template underneath](assets/tool-screenshot.png)
 
 **Try it:** <https://liberal-ste-meter-shareware.trycloudflare.com> — a temporary demo instance; see
 [Deploying](#deploying) to run your own.
@@ -47,9 +47,9 @@ Two things trip people up, and both are why this tool exists:
   cut from a differently-sized drawing appears shifted and scaled when hovered.
 
 There is no coordinate picker on the wikis and the template's documentation is a parameter table.
-So: this workbench.
+So: this tool.
 
-## What the workbench does
+## What it does
 
 Four steps, along the top bar.
 
@@ -93,7 +93,7 @@ before you export.
 
 ## Languages
 
-The workbench writes the dialect of whichever wiki you target: English Wikipedia
+The tool writes the dialect of whichever wiki you target: English Wikipedia
 (`{{Interactive image}}`) or Basque Wikipedia (`{{Irudi interaktiboa}}`), where the template and the
 technique originated. Interface language and target wiki are separate settings, so a Basque speaker
 can author for en.wp — and the exported parameter names follow the target, not the interface.
@@ -103,7 +103,7 @@ parameter names; `node check-i18n.js` fails until the entry is complete.
 
 ## Sharing a link to one template
 
-A URL can open the workbench with a template already loaded — useful for "look at this one", or for
+A URL can open the tool with a template already loaded — useful for "look at this one", or for
 a list of examples on a project page. **Copy link** in the top bar builds it for you.
 
 | URL | What it opens |
@@ -161,7 +161,7 @@ traps: **[DEPLOY.md](DEPLOY.md)**.
 
 ## Licence and provenance
 
-The workbench is MIT-licensed ([LICENSE](LICENSE)). `template-styles.css` is a verbatim copy of a
+The tool is MIT-licensed ([LICENSE](LICENSE)). `template-styles.css` is a verbatim copy of a
 Wikipedia page and remains **CC BY-SA 4.0**, © Wikipedia contributors — see
 [NOTICE.md](NOTICE.md). Image files are never redistributed: the app resolves them from Commons at
 runtime.
